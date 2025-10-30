@@ -4,9 +4,7 @@ services:
   # NGINX Web Server Service
   nginx:
     container_name: nginx
-    build:
-      context: ./requirements/nginx
-      dockerfile: Dockerfile
+    image: nginx:stable-alpine
     depends_on:
       - wordpress
     ports:
@@ -20,9 +18,7 @@ services:
   # MARIADB DATABASE
   mariadb:
     container_name: mariadb
-    build: 
-      context: ./requirements/mariadb
-      dockerfile: Dockerfile
+    image: mariadb:10.5
     environment:
       # Database connection for mariadb
       # variables used to configure the database connection
@@ -40,7 +36,7 @@ services:
   # WORDPRESS
   wordpress:
     container_name: wordpress
-    build: ./requirements/wordpress
+    image: wordpress:6.0-php8.0-apache
     depends_on:
       - mariadb
       - redis
@@ -66,32 +62,32 @@ services:
       #network
     restart: unless-stopped
 
-  # BONUS: redis
-  redis:
-    container_name: redis
-    build: 
-      context: ./bonus/redis
-      dockerfile: Dockerfile
-    #ports: NO ports needed (internal connection only)
-    volumes:
-      - redis_data:/var/www/html
-    networks:
-      - inception_network
-    restart: unless-stopped
+  # # BONUS: redis
+  # redis:
+  #   container_name: redis
+  #   build: 
+  #     context: ./bonus/redis
+  #     dockerfile: Dockerfile
+  #   #ports: NO ports needed (internal connection only)
+  #   volumes:
+  #     - redis_data:/var/www/html
+  #   networks:
+  #     - inception_network
+  #   restart: unless-stopped
     
-  # BONUS: adminer
-  adminer:
-    container_name: adminer
-    build: 
-      context: ./bonus/adminer
-      dockerfile: Dockerfile
-    volumes:
-      - adminer_data:/var/www/html
-    depends_on:
-      - mariadb
-    networks:
-      - inception_network
-    restart: unless-stopped
+  # # BONUS: adminer
+  # adminer:
+  #   container_name: adminer
+  #   build: 
+  #     context: ./bonus/adminer
+  #     dockerfile: Dockerfile
+  #   volumes:
+  #     - adminer_data:/var/www/html
+  #   depends_on:
+  #     - mariadb
+  #   networks:
+  #     - inception_network
+  #   restart: unless-stopped
 
 # VOLUMES #Named volumes for data persistence
 volumes:
@@ -112,21 +108,21 @@ volumes:
       device: ${DATA_DIR}/wordpress_data
       o: bind
 
-  # redis volume
-  redis_data:
-    driver: local
-    driver_opts:
-      type: none
-      device: ${DATA_DIR}/redis_data
-      o: bind
+  # # redis volume
+  # redis_data:
+  #   driver: local
+  #   driver_opts:
+  #     type: none
+  #     device: ${DATA_DIR}/redis_data
+  #     o: bind
 
-  # adminer volume  
-  adminer_data:
-    driver: local
-    driver_opts:
-      type: none
-      device: ${DATA_DIR}/adminer_data
-      o: bind
+  # # adminer volume  
+  # adminer_data:
+  #   driver: local
+  #   driver_opts:
+  #     type: none
+  #     device: ${DATA_DIR}/adminer_data
+  #     o: bind
 
 # NETWORKS # Custom network for service communication
 networks:
