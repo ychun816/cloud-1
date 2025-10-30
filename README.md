@@ -359,7 +359,35 @@ Here is a **full table** of alternative and complementary tools for server provi
 
 
 
+## test commands 
+```bash
+# repo and commit
+git status --porcelain
+git rev-parse --show-toplevel
+git log --oneline -n 5
 
+# docker & compose
+docker --version
+docker compose version || docker-compose --version
+
+# docker-compose file & run state
+ls -l compose/docker-compose.yml
+docker compose -f compose/docker-compose.yml ps || docker-compose -f compose/docker-compose.yml ps
+docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
+
+# volumes & persistent data
+docker volume ls
+# show volumes referenced by your compose file
+grep -n "volumes:" -n compose/docker-compose.yml -A5 || true
+
+# basic manual test steps (you must do these in a browser / WordPress UI)
+# 1) Start compose locally (if not running)
+docker compose -f compose/docker-compose.yml up -d
+# 2) Create a WP post and upload a media file, then:
+docker compose -f compose/docker-compose.yml down
+docker compose -f compose/docker-compose.yml up -d
+# Confirm post + file persist in the site UI
+```
 
 
 
