@@ -126,8 +126,11 @@ cloud-1/
 │       └── docker/
 │           └── tasks/main.yml
 ├── compose/
-│   ├── docker-compose.yml      <-- Copy from inception old srcs/docker-compose.yml
-│   └── conf/                   <-- Copy incpetion configs (nginx, wp, db)
+│   ├── docker-compose.yml
+│   └── conf/
+│       ├── nginx/
+│       ├── wordpress/
+│       └── mariadb/
 └── README.md
 
 ```
