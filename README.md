@@ -1,5 +1,101 @@
 # Cloud 1 
 
+## Daily Plan
+
+---
+
+# **4-Day Intensive Plan**
+
+## **Day 1 — Environment & Local Prototype (Full Setup)**
+
+**Goal:** Set up tools and create a working local WordPress + DB + phpMyAdmin + reverse proxy prototype.
+
+* [ ] Create Git repository for project.
+* [ ] Install Docker, Docker Compose, and Ansible locally.
+* [ ] Test SSH access to a local VM or test server.
+* [ ] Write `docker-compose.yml` for:
+
+  * WordPress container
+  * MySQL/MariaDB container
+  * phpMyAdmin container (optional)
+  * Nginx reverse proxy for HTTP
+* [ ] Map persistent volumes for database and WordPress uploads.
+* [ ] Test containers: create posts, upload files, stop/restart → verify persistence.
+* [ ] Commit `docker-compose.yml` to Git.
+
+---
+
+## **Day 2 — Automation (Ansible) & Local Testing**
+
+**Goal:** Automate deployment with Ansible and test locally.
+
+* [ ] Write Ansible playbook(s) to:
+
+  * Update Ubuntu 20.04 packages
+  * Install Docker & Docker Compose
+  * Clone Git repo
+  * Configure firewall (allow SSH, HTTP, HTTPS)
+  * Disable root password login
+  * Start Docker Compose setup as a service (auto-start)
+* [ ] Test playbook on a local VM/test server.
+* [ ] Debug any issues and ensure idempotency.
+* [ ] Test container networking and persistence after running playbook locally.
+* [ ] Commit playbooks to Git.
+
+---
+
+## **Day 3 — Remote Server Deployment & Basic Security**
+
+**Goal:** Deploy project to cloud server and make it functional.
+
+* [ ] Provision Ubuntu 20.04 server (Scaleway, AWS, etc.)
+* [ ] Add SSH public key.
+* [ ] Run Ansible playbook on remote server.
+* [ ] Verify deployment:
+
+  * WordPress site accessible
+  * phpMyAdmin works internally
+  * Containers restart after reboot → persistence works
+* [ ] Configure firewall, secure DB access (DB not exposed externally).
+* [ ] Optional: minimal TLS setup for HTTPS (basic Let’s Encrypt)
+
+---
+
+## **Day 4 — Security, TLS, Documentation & Submission**
+
+**Goal:** Finalize security, TLS, documentation, and submission.
+
+* [ ] Complete TLS/HTTPS with Let’s Encrypt on reverse proxy.
+* [ ] Test full deployment from scratch on fresh server (full teardown → redeploy).
+* [ ] Ensure persistent storage works correctly (posts/images survive).
+* [ ] Write README.md detailing:
+
+  * How to provision server
+  * How to run Ansible playbook
+  * How to deploy/update containers
+  * How to clean up resources
+* [ ] Commit all files (playbooks, `docker-compose.yml`, README).
+* [ ] Submit Git repository.
+
+---
+
+### ⚡ Notes for a 4-Day Schedule:
+
+1. **No time for extended experimentation** — stick strictly to functional setup.
+2. **Use a local VM** for testing Ansible before deploying to remote server — saves hours troubleshooting.
+3. **TLS can be partial on Day 3**; finalize full HTTPS on Day 4.
+4. **Have all configurations pre-tested** locally, including Docker volumes and container communication.
+
+---
+
+
+
+
+
+
+
+
+
 ## porject brief 
 Previous Inception project + automation + cloud infrastructure, 
 Extending the old Inception project by:
@@ -18,34 +114,92 @@ Extending the old Inception project by:
 | **Objective**   | Learn containerization & orchestration       | Learn DevOps automation & infrastructure-as-code         |
 
 
-## project structure
+## project repo structure
+- `ansible/` → automation logic
+- `compose/` → service definitions
+```bash
+cloud-1/
+├── ansible/
+│   ├── playbook.yml
+│   ├── hosts.ini
+│   └── roles/
+│       └── docker/
+│           └── tasks/main.yml
+├── compose/
+│   ├── docker-compose.yml      <-- Copy from inception old srcs/docker-compose.yml
+│   └── conf/                   <-- Copy incpetion configs (nginx, wp, db)
+└── README.md
+
+```
+
+
+## project structure (ASCII GRAPHIC)
+
+“big picture” of your Automated Inception project:
+```bash
+                        ┌────────────────────────────┐
+                        │  Your Laptop (Local)       │
+                        │────────────────────────────│
+                        │ - Git repository (code)    │
+                        │ - Ansible playbooks        │
+                        │ - docker-compose.yml       │
+                        │ - SSH key                  │
+                        └──────────────┬─────────────┘
+                                       │ SSH (port 22)
+                                       ▼
+                   ┌──────────────────────────────────────────────┐
+                   │  Remote Server (Ubuntu 20.04)                │
+                   │──────────────────────────────────────────────│
+                   │  Ansible installs & configures:              │
+                   │    1. Docker & Docker Compose                │
+                   │    2. Firewall & TLS certificates            │
+                   │    3. Starts containers automatically        │
+                   │----------------------------------------------│
+                   │  Containers (each service isolated):         │
+                   │                                              │
+                   │  ┌───────────┐   ┌────────────┐              │
+                   │  │ WordPress │◄──│  MySQL DB  │              │
+                   │  └───────────┘   └────────────┘              │
+                   │        ▲              ▲                      │
+                   │        │              │                      │
+                   │  ┌─────────────┐      │                      │
+                   │  │ phpMyAdmin  │──────┘                      │
+                   │  └─────────────┘                             │
+                   │        │                                     │
+                   │  ┌─────────────┐                             │
+                   │  │ Nginx Proxy │──▶ HTTPS (TLS) ─▶ Internet  │
+                   │  └─────────────┘                             │
+                   └──────────────────────────────────────────────┘
+
+```
+
 
 ```bash
-                    ┌──────────────────────────────┐
+                    ┌─────────────────────────────-─┐
                     │   Your Local Machine          │
-                    │──────────────────────────────│
+                    │────────────────────────────-──│
                     │  - Write docker-compose.yml   │
                     │  - Write Ansible playbooks    │
                     │  - Test containers locally    │
                     │  - Push to Git repository     │
-                    └──────────────┬───────────────┘
+                    └──────────────┬───────────────-┘
                                    │
                                    │ SSH + Git Clone
                                    ▼
-        ┌───────────────────────────────────────────-──┐
-        │        Remote Ubuntu 20.04 Server            │
-        │──────────────────────────────────────────-───│
-        │  Ansible Automation runs here:               │
-        │   • Updates system packages                  │
-        │   • Installs Docker & Compose                │
-        │   • Pulls your Git repo                      │
-        │   • Runs `docker-compose up -d`              │
-        │   • Configures firewall & TLS (HTTPS)        │
-        │─────────────────────────────────────────-────│
-        │         Docker Compose Orchestrator          │
-        │────────────────────────────────────────────-─│
-        │   ┌─────────────────────────────┐            │
-        │   │ NGINX (Reverse Proxy)       │◄───TLS─────┐
+        ┌─────────────────────────────────────-──────-──┐
+        │        Remote Ubuntu 20.04 Server             │
+        │──────────────────────────────────-────────-───│
+        │  Ansible Automation runs here:                │
+        │   • Updates system packages                   │
+        │   • Installs Docker & Compose                 │
+        │   • Pulls your Git repo                       │
+        │   • Runs `docker-compose up -d`               │
+        │   • Configures firewall & TLS (HTTPS)         │
+        │─────────────────────────────────────────--────│
+        │         Docker Compose Orchestrator           │
+        │────────────────────────────-────────────────-─│
+        │   ┌───────────────────────-──────┐            │
+        │   │ NGINX (Reverse Proxy)        │◄───TLS───┐ │
         │   │ - Routes requests            │            │
         │   │ - HTTPS via Let's Encrypt    │            │
         │   └──────────────┬───────────────┘            │
