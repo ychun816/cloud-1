@@ -39,7 +39,6 @@ services:
     image: wordpress:6.0-php8.0-apache
     depends_on:
       - mariadb
-      - redis
     environment:
       # Database connection for WordPress
       MYSQL_DATABASE: ${MYSQL_DATABASE}
