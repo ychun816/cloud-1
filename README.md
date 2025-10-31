@@ -239,6 +239,15 @@ Extending the old Inception project by:
 | **Security**    | Local access only                            | Public access secured by firewall + HTTPS                |
 | **Objective**   | Learn containerization & orchestration       | Learn DevOps automation & infrastructure-as-code         |
 
+## porject Stack Overview
+
+| Layer                                     | Tool                        | Purpose                                                                                                          | Notes                                                                                     |
+| ----------------------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| **Cloud Provider**                        | **AWS EC2**                 | Provides the virtual server (Ubuntu VM) that will host everything                                                | You’ll create this instance using **Terraform** (instead of manually from AWS console)    |
+| **Infrastructure as Code (IaC)**          | **Terraform**               | Automates the creation of AWS EC2, network, and security groups                                                  | Your `.tf` files describe the cloud resources declaratively                               |
+| **Configuration Management / Automation** | **Ansible**                 | Runs *inside or against* the created EC2 VM to install Docker, copy your project files, and start the containers | You’ll use a `playbook.yml` for tasks like “install Docker,” “start docker-compose,” etc. |
+| **Containerization**                      | **Docker + Docker Compose** | Packages your Inception stack (Nginx + MariaDB + WordPress) into containers                                      | Keeps the setup portable, reproducible, and cloud-ready                                   |
+
 
 ## project repo structure
 - `ansible/` → automation logic
@@ -258,6 +267,53 @@ cloud-1/
 │       ├── wordpress/
 │       └── mariadb/
 └── README.md
+
+```
+
+1. Terraform → Provision
+- Use Terraform to create your AWS EC2 instance automatically.
+- Output: a running Ubuntu VM + SSH access.
+
+2. Ansible → Configure
+- Use Ansible to connect to that EC2 instance.
+- Install Docker, Docker Compose, copy your compose/ folder.
+
+3. Docker → Deploy
+- Run docker compose up -d via Ansible to deploy your Nginx, WordPress, MariaDB containers.
+
+4. (Optional) Add domain name + SSL later for public access.
+
+```bash
+cloud-inception/
+├── README.md
+├── terraform/
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── outputs.tf
+│   └── provider.tf
+├── ansible/
+│   ├── inventory.ini
+│   ├── playbook.yml
+│   └── roles/
+│       └── docker/
+│           ├── tasks/
+│           │   └── main.yml
+│           └── templates/
+│               └── docker-compose.yml.j2
+└── compose/
+    ├── mariadb/
+    │   ├── Dockerfile
+    │   └── conf/
+    │       └── init_mariadb.sh
+    ├── nginx/
+    │   ├── Dockerfile
+    │   └── conf/
+    │       └── nginx.conf
+    ├── wordpress/
+    │   ├── Dockerfile
+    │   └── conf/
+    │       └── www.conf
+    └── .env
 
 ```
 
@@ -487,13 +543,27 @@ Here is a **full table** of alternative and complementary tools for server provi
 
 ---
 
-## Learning Resources
+## Learning Resources on server/data services
 
 - [ Learn Terraform (and AWS) by Building a Dev Environment – Full Course for Beginners ](https://www.youtube.com/watch?v=iRaai1IBlB0)
 
 - Server (with more built-in services) : [AWS lightsail](https://aws.amazon.com/free/compute/lightsail/?trk=efe0b52e-4f28-4f2b-8db8-31bec4d48cd6&sc_channel=ps&ef_id=Cj0KCQjwvJHIBhCgARIsAEQnWlDhr-h7p2MK-BRy3htdnbmFS4qra8OIOrwe3E925sIaZ-2DiNy5J2caArO5EALw_wcB:G:s&s_kwcid=AL!4422!3!536451983681!e!!g!!amazon%20lightsail!12260821599!116187150926&gad_campaignid=12260821599&gclid=Cj0KCQjwvJHIBhCgARIsAEQnWlDhr-h7p2MK-BRy3htdnbmFS4qra8OIOrwe3E925sIaZ-2DiNy5J2caArO5EALw_wcB)
 - Server : [Amazon EC2](https://aws.amazon.com/ec2/?nc2=type_a)
 - Online Database : [RDS](https://aws.amazon.com/rds/?nc2=h_prod_db_rds)
+
+
+| **Topic**                            | **Resource / Link**                                                                                                                                            | **Type**             | **Difficulty**             | **Summary / Why it’s Good**                                                                   |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | -------------------------- | --------------------------------------------------------------------------------------------- |
+| 🌥️ **Cloud Basics**                 | [AWS Cloud Practitioner Essentials (Free Course)](https://explore.skillbuilder.aws/learn/course/external/view/elearning/134/aws-cloud-practitioner-essentials) | Free AWS Course      | ⭐ Beginner                 | AWS’s official beginner course – teaches what cloud computing and AWS are, step by step.      |
+| 🌍 **AWS Basics**                    | [AWS Getting Started Resource Center](https://aws.amazon.com/getting-started/)                                                                                 | Tutorials & Docs     | ⭐ Beginner                 | Central hub with beginner-friendly projects (create a website, launch EC2, store data, etc.). |
+| 💻 **EC2 Basics (Official Docs)**    | [Getting Started with Amazon EC2](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html)                                                     | AWS Docs             | ⭐ Beginner                 | Official step-by-step guide to launch your first EC2 instance from the AWS console.           |
+| 🎥 **EC2 Video Tutorial**            | [FreeCodeCamp – AWS EC2 Crash Course](https://www.youtube.com/watch?v=Uhi3ikKzK0s)                                                                             | YouTube Video        | ⭐ Beginner                 | Visual, practical walkthrough on EC2 concepts, setup, and SSH access.                         |
+| ⚙️ **Terraform Basics**              | [Terraform Getting Started Guide (AWS)](https://developer.hashicorp.com/terraform/tutorials/aws-get-started)                                                   | Official Tutorial    | ⭐ Beginner                 | Hands-on tutorial to deploy EC2 with Terraform – excellent intro to Infrastructure as Code.   |
+| 🎬 **Terraform Explained (YouTube)** | [TechWorld with Nana – Terraform Explained Simply](https://www.youtube.com/watch?v=YcJ9IeukJL8)                                                                | YouTube Video        | ⭐ Beginner                 | Super clear visual explanation of Terraform, infrastructure as code, and workflows.           |
+| 📘 **Book (Optional)**               | [Terraform Up & Running (O’Reilly)](https://www.oreilly.com/library/view/terraform-up-and/9781098116743/)                                                      | Book                 | ⭐⭐ Beginner → Intermediate | Best book to deepen understanding once you’ve done a few basic projects.                      |
+| 🧪 **Hands-on Labs**                 | [AWS Skill Builder Labs](https://explore.skillbuilder.aws/learn/labs)                                                                                          | Interactive Labs     | ⭐ Beginner                 | Practice EC2 and IAM tasks in a free sandbox without needing your own AWS account.            |
+| 🧰 **Browser Practice**              | [Katacoda Terraform Scenarios](https://www.katacoda.com/hashicorp)                                                                                             | Interactive Tutorial | ⭐ Beginner                 | Learn Terraform right in the browser – no install required.                                   |
+
 
 
 ## test commands 
