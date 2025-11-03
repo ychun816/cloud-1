@@ -134,6 +134,40 @@ cloud-1/
 └── README.md
 
 ```
+- full repo structure (+anisible, terraform, ...)
+```bash
+cloud-inception/
+├── README.md
+├── terraform/
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── outputs.tf
+│   └── provider.tf
+├── ansible/
+│   ├── inventory.ini
+│   ├── playbook.yml
+│   └── roles/
+│       └── docker/
+│           ├── tasks/
+│           │   └── main.yml
+│           └── templates/
+│               └── docker-compose.yml.j2
+└── compose/
+    ├── mariadb/
+    │   ├── Dockerfile
+    │   └── conf/
+    │       └── init_mariadb.sh
+    ├── nginx/
+    │   ├── Dockerfile
+    │   └── conf/
+    │       └── nginx.conf
+    ├── wordpress/
+    │   ├── Dockerfile
+    │   └── conf/
+    │       └── www.conf
+    └── .env
+
+```
 
 
 ## project structure (ASCII GRAPHIC)
