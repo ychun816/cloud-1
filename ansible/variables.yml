@@ -1,0 +1,6 @@
+---
+# Variables for the playbook
+repo_url: 'https://github.com/ychun816/cloud-1.git'
+repo_version: 'master'
+app_dir: '/opt/cloud-1'
+compose_dir: '{{ app_dir }}/compose'

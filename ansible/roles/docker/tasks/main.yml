@@ -1,0 +1,72 @@
+---
+name: Docker role - install Docker & deploy compose stack
+hosts: all
+
+# NOTE: This role is written for Ubuntu 20.04 LTS targets.
+
+- name: Ensure apt cache is up to date
+	apt:
+		update_cache: yes
+		cache_valid_time: 3600
+
+- name: Install base packages
+	apt:
+		name:
+			- apt-transport-https
+			- ca-certificates
+			- curl
+			- gnupg
+			- lsb-release
+			- git
+		state: present
+
+- name: Add Docker GPG key
+	apt_key:
+		url: https://download.docker.com/linux/ubuntu/gpg
+		state: present
+
+- name: Add Docker apt repository
+	apt_repository:
+		repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
+		state: present
+
+- name: Install Docker packages
+	apt:
+		name:
+			- docker-ce
+			- docker-ce-cli
+			- containerd.io
+			- docker-compose-plugin
+		state: latest
+		update_cache: yes
+
+- name: Ensure docker service is started and enabled
+	service:
+		name: docker
+		state: started
+		enabled: yes
+
+- name: Create application directory
+	file:
+		path: "{{ app_dir }}"
+		state: directory
+		owner: root
+		group: root
+		mode: '0755'
+
+- name: Clone repository (force update)
+	git:
+		repo: "{{ repo_url }}"
+		dest: "{{ app_dir }}"
+		version: "{{ repo_version | default('master') }}"
+		force: yes
+
+- name: Ensure compose directory exists
+	file:
+		path: "{{ compose_dir }}"
+		state: directory
+
+- name: Start compose stack
+	command: docker compose -f {{ compose_dir }}/docker-compose.yml up -d
+	args:
+		chdir: "{{ compose_dir }}"
