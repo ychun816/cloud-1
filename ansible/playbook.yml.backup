@@ -1,0 +1,282 @@
+<<<<<<< HEAD
+# --- PLAY 1: Using role 'docker' ---
+name: Deploy cloud-1 compose stack   # logs: header msg for Ansible logs)
+hosts: web                           # Target group of hosts defined in inventory (the "web" group)
+become: true                         # Run tasks with sudo/root privileges
+vars_files:                          # External variable files to import
+  - variables.yml                         # Load additional variables from vars.yml
+roles:                               # Use predefined Ansible roles for modular automation
+  - docker                           # Apply the role named 'docker' (found under roles/docker)
+#minimal ref                         # Just a comment line
+
+# --- PLAY 2: Explicit bootstrap tasks ---
+- name: Cloud-1 bootstrap (Ubuntu target)   # logs: Second play -> targets Ubuntu hosts for initial setup
+  hosts: all                                # Run on all inventory hosts
+  become: true                              # Run tasks as sudo
+  vars:                                     # Define play-specific variables
+    repo_url: "https://github.com/ychun816/cloud-1.git"  # Git repo to clone app from
+    app_dir: /opt/cloud-1                                # Directory where the app will live
+
+  tasks:                                    # Sequence of operations
+
+  #update cashe
+    - name: Update apt cache                # logs: Refresh Ubuntu package index
+=======
+---
+# Cloud-1 bootstrap (Ubuntu target)
+# This playbook is safe to run on a remote VM or directly on the VM itself
+# (use inventory 'localhost' with ansible_connection=local).
+
+- name: Cloud-1 bootstrap (Ubuntu target)
+  hosts: all
+  become: true
+  vars:
+    repo_url: "https://github.com/ychun816/cloud-1.git"
+    repo_version: "master"
+    app_dir: /opt/cloud-1
+  tasks:
+    - name: Update apt cache
+>>>>>>> bd9c0c50112c96aa1cb3a374a6c67ea42b62302a
+      apt:
+        update_cache: yes                   # = "apt-get update"
+        cache_valid_time: 3600              # Skip update if cache is younger than 1 hour
+
+  #install prerequisites
+    - name: Install prerequisites           # logs: Install required system packages
+      apt:
+<<<<<<< HEAD
+        name: [apt-transport-https, ca-certificates, curl, gnupg, lsb-release, python3-apt, ufw]
+        state: present                      # Ensure they are installed
+
+  #install docker 
+    - name: Install Docker (official repo)  # Add Docker’s GPG key for package validation
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+      register: docker_key                  # Save the task result into variable “docker_key”
+=======
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - python3-apt
+          - python3-pip
+          - ufw
+        state: present
+
+    - name: Install Docker (official repo) key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+>>>>>>> bd9c0c50112c96aa1cb3a374a6c67ea42b62302a
+
+  #install docker
+    - name: Add Docker apt repo             # Add Docker’s official repository to apt sources
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable"
+        state: present
+
+<<<<<<< HEAD
+  #install docker components
+    - name: Install docker-ce, docker-ce-cli, containerd.io  # Install Docker components
+=======
+    - name: Install Docker engine and compose plugin
+>>>>>>> bd9c0c50112c96aa1cb3a374a6c67ea42b62302a
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
+
+<<<<<<< HEAD
+    - name: Ensure docker group exists and add ansible user  # Create docker group if missing
+=======
+    - name: Ensure docker group exists
+>>>>>>> bd9c0c50112c96aa1cb3a374a6c67ea42b62302a
+      group:
+        name: docker
+        state: present
+
+<<<<<<< HEAD
+    - name: Install docker-compose plugin via pip (or use apt)  # Install docker-compose
+      pip:
+        name: docker-compose
+        state: present
+      become: true
+=======
+    - name: Add current SSH user to docker group
+      user:
+        name: "{{ ansible_user_id }}"
+        groups: docker
+        append: yes
+
+    - name: Create application directory
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_gid | default(ansible_user_id) }}"
+        mode: '0755'
+>>>>>>> bd9c0c50112c96aa1cb3a374a6c67ea42b62302a
+
+    - name: Clone project repo              # Pull your app code from GitHub
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ app_dir }}"
+<<<<<<< HEAD
+        version: main                       # Checkout main branch
+        force: yes                          # Overwrite local changes if repo exists
+=======
+        version: "{{ repo_version }}"
+        force: yes
+>>>>>>> bd9c0c50112c96aa1cb3a374a6c67ea42b62302a
+
+    - name: Allow SSH, HTTP, HTTPS in UFW   # Configure firewall rules
+      ufw:
+        rule: allow
+        port: "{{ item }}"                  # Allow ports in the loop below
+      loop: [22, 80, 443]                   # Apply for SSH (22), HTTP (80), HTTPS (443)
+
+<<<<<<< HEAD
+#ssh hardening -> more secure ssh config -> Strongly recommended for production servers, optional for local testing.
+    - name: Disable root password login in sshd_config  # Harden SSH configuration
+=======
+    - name: Enable UFW firewall
+      ufw:
+        state: enabled
+        policy: deny
+      register: ufw_enabled
+      ignore_errors: true
+
+    - name: Disable root password login in sshd_config
+>>>>>>> bd9c0c50112c96aa1cb3a374a6c67ea42b62302a
+      lineinfile:
+        path: /etc/ssh/sshd_config          # File to edit
+        regexp: '^PermitRootLogin'          # Find the line starting with PermitRootLogin
+        line: 'PermitRootLogin no'          # Replace with “no”
+        state: present
+        backup: yes                         # Backup file before editing
+
+    - name: Restart ssh                     # Restart SSH service to apply new config
+      service:
+        name: ssh
+        state: restarted
+
+<<<<<<< HEAD
+    - name: Create systemd service to run docker compose (example)  # Create custom systemd unit
+=======
+    - name: Create systemd service to run docker compose
+>>>>>>> bd9c0c50112c96aa1cb3a374a6c67ea42b62302a
+      copy:
+        dest: /etc/systemd/system/cloud-1.service  # Path of the service unit
+        content: |                                 # Inline file content (multiline)
+          [Unit]
+          Description=Cloud-1 docker-compose
+          After=network.target docker.service
+          Requires=docker.service
+
+          [Service]
+          Type=oneshot
+          RemainAfterExit=yes
+          WorkingDirectory={{ app_dir }}/compose
+          ExecStart=/usr/bin/docker compose -f {{ app_dir }}/compose/docker-compose.yml up -d
+          ExecStop=/usr/bin/docker compose -f {{ app_dir }}/compose/docker-compose.yml down
+          TimeoutStartSec=0
+
+          [Install]
+          WantedBy=multi-user.target
+      notify: daemon-reload                    # Trigger handler to reload systemd
+
+<<<<<<< HEAD
+## 
+  handlers:                                   # Handlers are triggered by notify
+=======
+    - name: Enable and start cloud-1 service
+      systemd:
+        name: cloud-1.service
+        enabled: yes
+        state: started
+
+  handlers:
+>>>>>>> bd9c0c50112c96aa1cb3a374a6c67ea42b62302a
+    - name: daemon-reload
+      command: systemctl daemon-reload        # Reload systemd to recognize new service
+
+
+
+
+### NOTES ###
+
+# In Ansible, a playbook can contain multiple plays.
+# Each play targets a specific group of hosts and defines what to do with them.
+# Ansible follows an idempotent + step-by-step philosophy:
+# 1. Each task should do one atomic thing.
+# 2. If something fails, you know exactly which step.
+# 3. You can re-run it safely — it’ll skip what’s already done.
+
+
+
+# Why Play 1 has name: (no dash)	The very first line in YAML (no preceding -) defines a single dictionary (one play).
+# Why Play 2 starts with - name:	A YAML list begins with -. This means the playbook can hold multiple plays in sequence, and each is an item in that list.
+# Playbook
+# │
+# ├─ Play 1 → uses "docker" role
+# └─ Play 2 → manual setup tasks
+
+
+# roles:
+#   - docker
+# => This means: “Run all the tasks from the role named docker on the target hosts.”
+# roles/
+#  └── docker/
+#      ├── tasks/
+#      │   └── main.yml   ← Ansible automatically looks for a folder like this, these tasks are executed
+#      ├── vars/
+#      ├── templates/
+#      └── files/
+
+
+# rule: allow
+# port: "{{ item }}"
+# loop: [22, 80, 443]
+# why loop? => Instead of repeating 3 tasks, you define one task and iterate over a list.
+# => This means: “For each port in the list (22, 80, 443), create a UFW rule to allow traffic on that port.”
+# | Port    | Protocol | Purpose                                  |
+# | ------- | -------- | ---------------------------------------- |
+# | **22**  | SSH      | Remote access (Ansible needs this open!) |
+# | **80**  | HTTP     | For web traffic (WordPress / Nginx)      |
+# | **443** | HTTPS    | For secure web traffic (SSL)             |
+
+
+# Inline = the file’s content is written directly in the playbook (not a separate file).
+# The `|` tells YAML:“Everything indented below this is literal multi-line text.”
+# => You embed the entire file inside the playbook.
+
+# notify & handlers:
+# notify: daemon-reload -> “When this task changes something, trigger the handler named daemon-reload.”
+# handlers:  Think of a handler as a “callback” that runs only if something changed.
+# TASK "Create systemd service" → changed something
+#         │
+#         └──> notify "daemon-reload"
+#                     │
+#                     └──> HANDLER runs "systemctl daemon-reload"
+
+
+
+# | # | Concept               | Meaning / Function                  | Analogy                         |
+# | - | --------------------- | ----------------------------------- | ------------------------------- |
+# | 1 | Play 1 vs Play 2      | Independent plays executed in order | Two chapters in one script      |
+# | 2 | `roles: - docker`     | Runs tasks from role `docker`       | Import and execute a module     |
+# | 3 | Many Docker tasks     | One step = one operation            | Lego blocks for clarity         |
+# | 4 | Loop 22/80/443        | Allow SSH/HTTP/HTTPS                | Firewall safety                 |
+# | 5 | SSH hardening         | Disable root login                  | Security best practice          |
+# | 6 | Inline file content   | Embed file content in YAML          | Write file directly in code     |
+# | 7 | `notify` → `handlers` | Conditional callback                | “Only run if needed” automation |
+
+
+##############
