@@ -10,18 +10,18 @@
 
 **Goal:** Set up tools and create a working local WordPress + DB + phpMyAdmin + reverse proxy prototype.
 
-* [ ] Create Git repository for project.
-* [ ] Install Docker, Docker Compose, and Ansible locally.
-* [ ] Test SSH access to a local VM or test server.
-* [ ] Write `docker-compose.yml` for:
+* [V] Create Git repository for project.
+* [V] Install Docker, Docker Compose, and Ansible locally.
+* [V] Test SSH access to a local VM or test server.
+* [V] Write `docker-compose.yml` for:
 
   * WordPress container
   * MySQL/MariaDB container
   * phpMyAdmin container (optional)
   * Nginx reverse proxy for HTTP
-* [ ] Map persistent volumes for database and WordPress uploads.
-* [ ] Test containers: create posts, upload files, stop/restart → verify persistence.
-* [ ] Commit `docker-compose.yml` to Git.
+* [V] Map persistent volumes for database and WordPress uploads.
+* [V] Test containers: create posts, upload files, stop/restart → verify persistence.
+* [V] Commit `docker-compose.yml` to Git.
 
 ---
 
@@ -42,44 +42,7 @@
 * [ ] Test container networking and persistence after running playbook locally.
 * [ ] Commit playbooks to Git.
 
----
-
-## **Day 3 — Remote Server Deployment & Basic Security**
-
-**Goal:** Deploy project to cloud server and make it functional.
-
-* [ ] Provision Ubuntu 20.04 server (Scaleway, AWS, etc.)
-* [ ] Add SSH public key.
-* [ ] Run Ansible playbook on remote server.
-* [ ] Verify deployment:
-
-  * WordPress site accessible
-  * phpMyAdmin works internally
-  * Containers restart after reboot → persistence works
-* [ ] Configure firewall, secure DB access (DB not exposed externally).
-* [ ] Optional: minimal TLS setup for HTTPS (basic Let’s Encrypt)
-
----
-
-## **Day 4 — Security, TLS, Documentation & Submission**
-
-**Goal:** Finalize security, TLS, documentation, and submission.
-
-* [ ] Complete TLS/HTTPS with Let’s Encrypt on reverse proxy.
-* [ ] Test full deployment from scratch on fresh server (full teardown → redeploy).
-* [ ] Ensure persistent storage works correctly (posts/images survive).
-* [ ] Write README.md detailing:
-
-  * How to provision server
-  * How to run Ansible playbook
-  * How to deploy/update containers
-  * How to clean up resources
-* [ ] Commit all files (playbooks, `docker-compose.yml`, README).
-* [ ] Submit Git repository.
-
----
-
-## Agenda — Tasks to do while AWS validates
+### Tasks to do while AWS validates
 
 While your AWS account is being validated (or if you don't yet have a VM), you can make progress on the automation and infra scaffolding. Complete these items now so you'll be ready to provision and deploy once AWS is available.
 
@@ -123,6 +86,46 @@ chmod 600 ~/.ssh/cloud1_id_ed25519
 - [ ] Update this `README.md` with the final deployment checklist and commit the scaffolding to a feature branch (example: `infra/scaffold`).
 
 These tasks helps to validate automation locally and reduce friction when the cloud account is ready.
+
+
+---
+
+## **Day 3 — Remote Server Deployment & Basic Security**
+
+**Goal:** Deploy project to cloud server and make it functional.
+
+* [ ] Provision Ubuntu 20.04 server (Scaleway, AWS, etc.)
+* [ ] Add SSH public key.
+* [ ] Run Ansible playbook on remote server.
+* [ ] Verify deployment:
+
+  * WordPress site accessible
+  * phpMyAdmin works internally
+  * Containers restart after reboot → persistence works
+* [ ] Configure firewall, secure DB access (DB not exposed externally).
+* [ ] Optional: minimal TLS setup for HTTPS (basic Let’s Encrypt)
+
+---
+
+## **Day 4 — Security, TLS, Documentation & Submission**
+
+**Goal:** Finalize security, TLS, documentation, and submission.
+
+* [ ] Complete TLS/HTTPS with Let’s Encrypt on reverse proxy.
+* [ ] Test full deployment from scratch on fresh server (full teardown → redeploy).
+* [ ] Ensure persistent storage works correctly (posts/images survive).
+* [ ] Write README.md detailing:
+
+  * How to provision server
+  * How to run Ansible playbook
+  * How to deploy/update containers
+  * How to clean up resources
+* [ ] Commit all files (playbooks, `docker-compose.yml`, README).
+* [ ] Submit Git repository.
+
+---
+
+
 
 
 ### ⚡ Notes for a 4-Day Schedule:
@@ -437,8 +440,142 @@ Here is a **full table** of alternative and complementary tools for server provi
 
 ---
 
+## Ansible Implementation
+
+> other notes in /anible/README.md
+
+### Ansible files & workflow:
+1. `inventory.ini` tells Ansible where to connect.
+2. `playbook.yml` defines what to do.
+3. `variables.yml` defines values used by the playbook.
+4. `.j2` templates are rendered with those variables and written to the target server.
+5. The result → Docker app deployed on your EC2. 
+```
+TEMPLATE (.j2)
+↓ + VARIABLES
+-------------------
+= RENDERED FILE (.yml)
+↓
+→ COPIED TO SERVER
+↓
+→ USED IN DEPLOYMENT
+```
+
+```bash
+┌──────────────────────────────┐
+│        YOU (the user)        │
+│ Run: ansible-playbook playbook.yml
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ inventory.ini                │
+│ - Defines target hosts, SSH  │
+│   keys, interpreter, etc.    │
+│ Example: 1.2.3.4 ansible_user=ubuntu
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ playbook.yml                 │
+│ - Calls "roles/docker"       │
+│ - Includes "variables.yml"   │
+│ - Tells Ansible to apply     │
+│   the template task          │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ variables.yml                │
+│ - Defines values used inside │
+│   the Jinja2 template        │
+│ e.g. app_dir=/opt/cloud-1    │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ roles/docker/tasks/main.yml  │
+│ - Has a task like:           │
+│   template:                  │
+│     src: docker-compose.yml.j2
+│     dest: "{{ compose_dir }}/docker-compose.yml"
+└──────────────┬───────────────┘
+               │
+               ▼
+────────────────────────────────────────────
+   Inside the `template:` task (Ansible magic)
+────────────────────────────────────────────
+               │
+               ▼
+┌──────────────────────────────┐
+│ 1️⃣ Read Source Template (.j2) │
+│ e.g., roles/docker/templates/ │
+│      docker-compose.yml.j2    │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ 2️⃣ Parse with Jinja2 Engine  │
+│ - Finds {{ variables }} and  │
+│   {% logic %} blocks         │
+│ - Replaces using vars.yml or │
+│   playbook vars              │
+│ Example:                     │
+│   "{{ app_dir }}" → "/opt/cloud-1"
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ 3️⃣ Render Final Text File    │
+│ - The template now becomes a │
+│   plain YAML file (no braces)│
+│ Example output:              │
+│   volumes:                   │
+│     - /opt/cloud-1/html:/usr/share/nginx/html
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ 4️⃣ Copy Rendered File to     │
+│   Remote Host via SSH        │
+│ - Saved at path in 'dest:'   │
+│   e.g. /opt/cloud-1/compose/ │
+│        docker-compose.yml    │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ 5️⃣ Next Task Executes Docker │
+│   - "docker compose up -d"   │
+│   - Containers start running │
+│     using the rendered file  │
+└──────────────────────────────┘
+
+```
+
+### files brief
+```bash
+| Path                                           | Type            | Purpose                                                                                                | Example Usage                                           |
+| ---------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------- |
+| `inventory.ini`                                | File            | Lists your **target servers** (where Ansible will deploy). Defines host groups (`[web]`, `[db]`, etc.) | Defines EC2 instance IP, SSH key path                   |
+| `inventory.ini.example`                        | Template        | Example version of `inventory.ini` for reference or new users                                          | Shows how to structure connection settings              |
+| `playbook.yml`                                 | File            | The **main Ansible script** — defines what tasks or roles to run on which host groups                  | Calls the `docker` role to deploy your app              |
+| `roles/docker/`                                | Folder          | Self-contained logic for configuring Docker                                                            | Reusable building block                                 |
+| `roles/docker/tasks/main.yml`                  | File            | Contains a **sequence of tasks** (Ansible actions)                                                     | Install Docker, copy compose template, start containers |
+| `roles/docker/templates/docker-compose.yml.j2` | Jinja2 template | Template for Docker Compose file                                                                       | Variables in `{{ brackets }}` get replaced              |
+| `variables.yml`                                | File            | Stores global **variables** used in playbook and templates                                             | Defines repo URL, app directory, etc.                   |
+```
+
+---
+
+## Terraform
+
+### workflow
+### files brief
 
 
+
+---
 ## test commands 
 ```bash
 # repo and commit
@@ -470,8 +607,23 @@ docker compose -f compose/docker-compose.yml up -d
 ```
 
 
+## Tutorial vids to watch :
 
+### 1104
+[] System Design Concepts Course and Interview Prep
+https://www.youtube.com/watch?v=F2FmTdLtb_4
 
+[] AWS Cloud Engineer Full Course for Beginners
+https://www.youtube.com/watch?v=j_StCjwpfmk
+
+[] Cloud Computing Explained: The Most Important Concepts To Know
+https://www.youtube.com/watch?v=ZaA0kNm18pE
+
+[] Terraform Course - Automate your AWS cloud infrastructure
+https://www.youtube.com/watch?v=SLB_c_ayRMo
+
+[] Learn Terraform (and AWS) by Building a Dev Environment – Full Course for Beginners
+https://www.youtube.com/watch?v=iRaai1IBlB0
 
 
 
