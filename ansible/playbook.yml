@@ -160,6 +160,18 @@ roles:                               # Use predefined Ansible roles for modular 
 # | **443** | HTTPS    | For secure web traffic (SSL)             |
 
 
+# Inline = the file’s content is written directly in the playbook (not a separate file).
+# The `|` tells YAML:“Everything indented below this is literal multi-line text.”
+# => You embed the entire file inside the playbook.
+
+# notify & handlers:
+# notify: daemon-reload -> “When this task changes something, trigger the handler named daemon-reload.”
+# handlers:  Think of a handler as a “callback” that runs only if something changed.
+# TASK "Create systemd service" → changed something
+#         │
+#         └──> notify "daemon-reload"
+#                     │
+#                     └──> HANDLER runs "systemctl daemon-reload"
 
 
 
@@ -172,4 +184,6 @@ roles:                               # Use predefined Ansible roles for modular 
 # | 5 | SSH hardening         | Disable root login                  | Security best practice          |
 # | 6 | Inline file content   | Embed file content in YAML          | Write file directly in code     |
 # | 7 | `notify` → `handlers` | Conditional callback                | “Only run if needed” automation |
+
+
 ##############
