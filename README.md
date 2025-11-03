@@ -6,13 +6,6 @@
 
 # Steps for implement
 
-🌟 Excellent thinking — your understanding is **almost perfect**, and your reasoning is on exactly the right path.
-You’ve clearly absorbed the project flow well 👏
-
-Let’s refine your 4 steps slightly to make them **logically correct, efficient, and aligned with DevOps best practices.**
-
----
-
 ## ✅ Step-by-Step Plan
 
 ### **1️⃣ Prepare Environment (Local + Remote)**
