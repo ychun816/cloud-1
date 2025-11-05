@@ -29,17 +29,16 @@
 
 **Goal:** Automate deployment with Ansible and test locally.
 
-* [ ] Write Ansible playbook(s) to:
-
-  * Update Ubuntu 20.04 packages
-  * Install Docker & Docker Compose
-  * Clone Git repo
-  * Configure firewall (allow SSH, HTTP, HTTPS)
-  * Disable root password login
-  * Start Docker Compose setup as a service (auto-start)
-* [ ] Test playbook on a local VM/test server.
-* [ ] Debug any issues and ensure idempotency.
-* [ ] Test container networking and persistence after running playbook locally.
+* [V] Write Ansible playbook(s) to:
+  * [V] Update Ubuntu 20.04 packages
+  * [V] Install Docker & Docker Compose
+  * [V] Clone Git repo
+  * [V] Configure firewall (allow SSH, HTTP, HTTPS)
+  * [V] Disable root password login
+  * [V] Start Docker Compose setup as a service (auto-start)
+* [V] Test playbook on a local VM/test server.
+* [V] Debug any issues and ensure idempotency.
+* [V] Test container networking and persistence after running playbook locally.
 
 ### tutorial vids for cloud basics / AWS & terraform setup
 
@@ -64,18 +63,63 @@ https://www.youtube.com/watch?v=F2FmTdLtb_4
 
 **Goal:** Deploy project to cloud server and make it functional.
 
-* [ ] Provision Ubuntu 20.04 server (Scaleway, AWS, etc.)
-* [ ] Add SSH public key.
-* [ ] Run Ansible playbook on remote server.
+* [V] Provision Ubuntu 20.04 server (Scaleway, AWS, etc.)
+  - Note: Terraform configs and `envs/` tfvars are present; run `terraform apply` to create the instance.
+* [V] Add SSH public key.
+  - Note: `key_name` and `public_key_path` variables are available and an optional `aws_key_pair` resource is included (commented) to upload a key.
+* [V] Run Ansible playbook on remote server.
+  - Note: Ansible playbook and roles are present under `ansible/` — add the provisioned host to inventory or generate one from Terraform outputs.
 * [ ] Verify deployment:
-
   * WordPress site accessible
   * phpMyAdmin works internally
   * Containers restart after reboot → persistence works
-* [ ] Configure firewall, secure DB access (DB not exposed externally).
+* [V] Configure firewall, secure DB access (DB not exposed externally).
+  - Note: Terraform creates a security group allowing SSH/HTTP/HTTPS and Ansible playbook configures UFW rules on the instance.
 * [ ] Optional: minimal TLS setup for HTTPS (basic Let’s Encrypt)
 
 
+
+### Terraform (Day 3) — Quick usage
+
+Use the Terraform configuration in `terraform/` to provision an Ubuntu 20.04 server and security group (SSH/HTTP/HTTPS). Create a `terraform/terraform.tfvars` from the example `terraform/terraform.tfvars.example` before applying.
+
+Example `terraform/terraform.tfvars` (copy from `terraform/terraform.tfvars.example`):
+
+```hcl
+aws_region     = "us-east-1"
+aws_profile    = "default"
+instance_type  = "t3a.small"
+key_name       = ""          # Name of an existing AWS KeyPair or leave empty
+# public_key_path = "/home/you/.ssh/cloud1_id_ed25519.pub"  # if creating key via Terraform
+```
+
+Commands to provision (Day 3):
+
+```bash
+cd terraform
+terraform init
+terraform plan -out=tfplan
+terraform apply tfplan       # or: terraform apply -auto-approve
+terraform output public_ip
+terraform output public_dns
+```
+
+After apply: add the instance to your Ansible inventory (example):
+
+```ini
+[web]
+<public_ip> ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/yourkey.pem
+```
+
+Then run the playbook to configure the server and start the compose stack:
+
+```bash
+ansible-playbook -i ansible/hosts.ini ansible/playbook.yml
+```
+
+Notes:
+- If you prefer Terraform to upload your public key, set `public_key_path` and uncomment the `aws_key_pair` resource in `terraform/main.tf`.
+- Provider and version pinning are in `terraform/provider.tf` (the file documents the difference between the `terraform {}` block and `provider "aws" {}` — keep credentials out of VCS).
 
 ---
 
@@ -541,9 +585,347 @@ TEMPLATE (.j2)
 ---
 
 ## Terraform
+### repo structure
+```
+terraform/
+├── main.tf
+├── outputs.tf
+├── provider.tf
+└── variables.tf
+```
+- `main.tf` → core logic: resources, data sources, infra setup.
+- `variables.tf` → input definitions, reusable.
+- `provider.tf` → provider configuration, version pinning.
+- `outputs.tf` → export info for Ansible, CI/CD, etc.
+
+> next step structure
+```
+terraform/
+├── backend.tf          # Remote state management (S3 + DynamoDB)
+├── provider.tf         # AWS provider configuration
+├── variables.tf        # Variable definitions
+├── locals.tf           # Common tags, names, reusable logic
+├── main.tf             # Resources (EC2, SG, Key Pair)
+├── outputs.tf          # Outputs (IP, DNS, etc.)
+├── terraform.tfvars    # Default values for variables
+├── env/
+│   ├── dev/
+│   │   └── terraform.tfvars
+│   └── prod/
+│       └── terraform.tfvars
+└── ansible/
+    └── playbook.yml #etc
+    └── ...    
+```
+
+> modern day organization 
+
+| File                       | Typical contents                   | Why                                 |
+| -------------------------- | ---------------------------------- | ----------------------------------- |
+| **main.tf**                | Key resources (EC2, SG, AMI, etc.) | Simple to understand, small project |
+| **network.tf** (optional)  | VPC, subnets, routing              | If you manage networking separately |
+| **security.tf** (optional) | Security groups                    | If you have multiple SGs            |
+| **compute.tf** (optional)  | EC2, autoscaling                   | For scaling / multiple servers      |
+| **modules/**               | Reusable sets of resources         | For larger teams/projects           |
+> For Cloud 1 Project → keeping AMI, SG, and EC2 all in main.tf is perfect.
+
+🔵 Optional next improvements:
+ext-step files: `backend.tf`, `locals.tf`, `terraform.tfvars` , etc.
+- [] Add a `backend.tf` for remote state (e.g., S3 + DynamoDB).
+- [] Split resources into modules if project grows (e.g., /modules/ec2).
+- [] Add `terraform.tfvars` for runtime variable overrides.
+
 
 ### workflow
+```
+                            ┌──────────────────────────────┐
+                            │        GitHub / Codespace    │
+                            │ (Your Terraform repository)  │
+                            └─────────────┬────────────────┘
+                                          │
+                                          ▼
+        ┌────────────────────────────────────────────────────────────────┐
+        │                    TERRAFORM PROJECT STRUCTURE                  │
+        ├────────────────────────────────────────────────────────────────┤
+        │                                                                │
+        │  backend.tf        → Configure remote state backend (S3, lock) │
+        │  provider.tf       → Set up AWS provider + version constraints │
+        │  variables.tf      → Define all configurable inputs            │
+        │  locals.tf         → Define reusable tags & naming conventions │
+        │  main.tf           → Main logic: EC2, SG, Key Pair, AMI data   │
+        │  outputs.tf        → Export useful info (IP, DNS)              │
+        │  terraform.tfvars  → Actual values (region, key name, etc.)    │
+        │  env/dev, env/prod → Environment overrides                     │
+        │                                                                │
+        └────────────────────────────────────────────────────────────────┘
+                                          │
+                                          ▼
+                         ┌─────────────────────────────────┐
+                         │ terraform init                  │
+                         │  ↳ Reads backend.tf             │
+                         │  ↳ Downloads AWS provider       │
+                         │  ↳ Initializes state mgmt (S3)  │
+                         └─────────────────────────────────┘
+                                          │
+                                          ▼
+                         ┌─────────────────────────────────┐
+                         │ terraform plan                  │
+                         │  ↳ Reads variables.tf + tfvars  │
+                         │  ↳ Evaluates main.tf resources  │
+                         │  ↳ Shows changes preview         │
+                         └─────────────────────────────────┘
+                                          │
+                                          ▼
+                         ┌─────────────────────────────────┐
+                         │ terraform apply                 │
+                         │  ↳ Creates resources in AWS     │
+                         │  ↳ Writes state to S3 backend   │
+                         │  ↳ Outputs IP + DNS info        │
+                         └─────────────────────────────────┘
+                                          │
+                                          ▼
+                       ┌──────────────────────────────────────┐
+                       │  AWS Cloud Infrastructure            │
+                       │  - EC2 instance (Ubuntu)             │
+                       │  - Security group                    │
+                       │  - SSH key pair                      │
+                       │  - Tags from locals.tf               │
+                       │  - State stored in S3 backend        │
+                       └──────────────────────────────────────┘
+                                          │
+                                          ▼
+                     ┌────────────────────────────────────────────┐
+                     │  Ansible Provisioning Layer (optional)     │
+                     │  - SSHs into EC2                           │
+                     │  - Installs Docker / Nginx / WordPress     │
+                     │  - Configures environment                  │
+                     └────────────────────────────────────────────┘
+                                          │
+                                          ▼
+                      ┌──────────────────────────────────────────┐
+                      │  Running Cloud Service                   │
+                      │  🌍 https://<public_dns>                 │
+                      │  Managed via IaC + Ansible               │
+                      └──────────────────────────────────────────┘
+
+```
+| File                       | Purpose                                                           | When Used                 | Key Workflow Role                          |
+| -------------------------- | ----------------------------------------------------------------- | ------------------------- | ------------------------------------------ |
+| **`backend.tf`**           | Defines where Terraform stores state (S3 bucket + DynamoDB lock). | During `terraform init`   | Enables team collaboration & persistence   |
+| **`provider.tf`**          | Configures AWS provider + version pinning.                        | During all Terraform runs | Connects Terraform → AWS                   |
+| **`variables.tf`**         | Declares variable names, types, defaults.                         | During `plan/apply`       | Defines flexible, reusable inputs          |
+| **`terraform.tfvars`**     | Contains actual variable values (region, key_name, etc).          | During `plan/apply`       | Supplies environment-specific config       |
+| **`locals.tf`**            | Holds reusable naming conventions & tagging maps.                 | During resource creation  | Keeps naming/tagging consistent            |
+| **`main.tf`**              | Core file — declares resources: EC2, SG, AMI, keypair.            | During `plan/apply`       | Builds your AWS infrastructure             |
+| **`outputs.tf`**           | Defines outputs: IP, DNS, etc.                                    | After `apply`             | Returns resource info for Ansible or CI/CD |
+| **`env/dev` / `env/prod`** | Contains tfvars overrides for each environment.                   | Manual or automated       | Separates dev/staging/prod                 |
+| **`ansible/playbook.yml`** | (Optional) Configures app after instance is created.              | After Terraform apply     | Automates provisioning of software         |
+
+
 ### files brief
+
+`main.tf`
+
+* In Terraform, `main.tf` is typically used to **declare core resources** — the things you are actually creating (EC2, S3, SG, etc).
+* It acts as the “entry point” or the **main blueprint** of your infrastructure.
+
+👉 However, as a project grows, teams often split it into **multiple files** or even **modules** for organization:
+
+```
+main.tf            → high-level composition (calls modules)
+modules/
+ ├── network/
+ ├── compute/
+ └── storage/
+```
+
+### 🟩 “Lookup the latest Ubuntu 20.04 AMI from Canonical”
+
+```hcl
+data "aws_ami" "ubuntu_focal" {
+  most_recent = true
+  owners      = ["099720109477"] # Canonical
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
+  }
+}
+```
+
+#### 🧩 What’s an **AMI**?
+
+* **AMI = Amazon Machine Image**
+* It’s like a **template or base image** for your EC2 instance.
+* It includes:
+
+  * Operating system (Ubuntu, Amazon Linux, Windows, etc.)
+  * Optional pre-installed software
+  * Boot configuration
+
+So, when you launch an EC2, you’re saying “create a new virtual machine **based on this AMI**”.
+
+#### 🧩 What’s “Canonical”?
+
+* **Canonical** is the company that develops **Ubuntu**.
+* AWS lists many AMIs from different publishers, but each publisher has a unique **account ID**.
+* The ID `099720109477` = Canonical’s official AWS account.
+
+  > ✅ This ensures you’re pulling **authentic Ubuntu images**, not random community ones.
+
+---
+
+### 🟩 2. “Define a security group for web traffic”
+
+```hcl
+resource "aws_security_group" "web_sg" {
+  name        = "cloud1-web-sg"
+  description = "Allow SSH, HTTP, HTTPS"
+  ...
+}
+```
+
+#### 🧩 What’s a **security group**?
+
+A **security group** is a **virtual firewall** attached to your EC2 instance.
+
+It defines:
+
+* ✅ **Ingress rules** → what traffic is allowed **into** your instance.
+* ✅ **Egress rules** → what traffic is allowed **out** of your instance.
+
+In your example:
+
+* Port 22 → SSH (so you can log in)
+* Port 80 → HTTP (for web traffic)
+* Port 443 → HTTPS (for secure web)
+* Egress → all traffic allowed outbound
+
+💡 Without a security group, your EC2 would be **isolated — you couldn’t access it at all.**
+
+---
+
+### 🟩 3. “Create an EC2 instance”
+
+```hcl
+resource "aws_instance" "web" {
+  ami                    = data.aws_ami.ubuntu_focal.id
+  instance_type          = var.instance_type
+  vpc_security_group_ids = [aws_security_group.web_sg.id]
+  key_name               = var.key_name != "" ? var.key_name : null
+  tags = { Name = "cloud1-web" }
+}
+```
+
+#### 🧩 Can I create multiple EC2 instances here?
+
+✅ Yes, absolutely.
+
+There are two common ways:
+
+**A. Manually duplicate**
+
+```hcl
+resource "aws_instance" "web2" { ... }
+resource "aws_instance" "db" { ... }
+```
+
+**B. Dynamically create multiple instances**
+
+```hcl
+resource "aws_instance" "web" {
+  count         = 3
+  ami           = data.aws_ami.ubuntu_focal.id
+  instance_type = var.instance_type
+  tags = { Name = "cloud1-web-${count.index}" }
+}
+```
+
+This would create:
+
+```
+cloud1-web-0
+cloud1-web-1
+cloud1-web-2
+```
+
+💡 **Common practice:**
+
+* For small projects → put EC2 resources in `main.tf`
+* For larger ones → move them to `compute.tf` or a `/modules/ec2` folder
+
+---
+
+### 🟩 4. “Why create key pair from local public key?”
+
+```hcl
+# resource "aws_key_pair" "deployer" {
+#   key_name   = "cloud1-deploy"
+#   public_key = file(var.public_key_path)
+# }
+```
+
+#### 🧩 What this does:
+
+It uploads your **local SSH public key** to AWS as a **key pair**.
+
+Then AWS uses it to let you SSH into the EC2 instance securely:
+
+* You connect using your **private key**
+* AWS verifies it against the **public key** stored in your EC2
+
+So instead of manually adding your key in AWS Console, Terraform automates it.
+
+#### 🧠 When to use it:
+
+| Scenario                                            | Should you use `aws_key_pair`?            |
+| --------------------------------------------------- | ----------------------------------------- |
+| You already have a key pair created in AWS          | ❌ No (just reference it using `key_name`) |
+| You want Terraform to create & manage it for you    | ✅ Yes (uncomment the resource)            |
+| You deploy from GitHub Codespaces (no pre-made key) | ✅ Very helpful!                           |
+
+---
+
+## 📊 Summary Table
+
+| Section            | Purpose                     | Common Practice                                     |
+| ------------------ | --------------------------- | --------------------------------------------------- |
+| **AMI data block** | Get the latest Ubuntu image | Yes, always use a data source instead of hardcoding |
+| **Security Group** | Allow web + SSH traffic     | Always define your own SG per instance/app          |
+| **EC2 instance**   | Create the actual VM        | Often stays in `main.tf` unless large project       |
+| **Key Pair**       | Allow secure SSH login      | Use if you don’t already have a key in AWS          |
+
+---
+
+### 🧩 ASCII overview — how `main.tf` flows
+
+```
+[ data.aws_ami.ubuntu_focal ]   -> finds the latest Ubuntu AMI
+             │
+             ▼
+[ aws_security_group.web_sg ]   -> defines firewall rules
+             │
+             ▼
+[ aws_instance.web ]            -> creates EC2 using the above AMI + SG
+             │
+             ▼
+[ aws_key_pair.deployer ] (opt) -> uploads local public key to AWS
+```
+
+---
+
+✅ **Final takeaways**
+
+* Yes, your `main.tf` is well structured and standard.
+* Keeping AMI + SG + EC2 here is fine for small projects.
+* You can expand later into modules if your infra grows.
+* The key pair helps automate SSH setup.
+* Each section serves a critical part of the EC2 lifecycle.
+
+---
+
+
+
+
 
 
 
