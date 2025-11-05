@@ -609,11 +609,9 @@ docker compose -f compose/docker-compose.yml up -d
 
 ## Tutorial vids to watch :
 
-### 1104
-[] System Design Concepts Course and Interview Prep
-https://www.youtube.com/watch?v=F2FmTdLtb_4
-
-[] AWS Cloud Engineer Full Course for Beginners
+### 1104-1105
+must
+[X] AWS Cloud Engineer Full Course for Beginners
 https://www.youtube.com/watch?v=j_StCjwpfmk
 
 [] Cloud Computing Explained: The Most Important Concepts To Know
@@ -624,6 +622,16 @@ https://www.youtube.com/watch?v=SLB_c_ayRMo
 
 [] Learn Terraform (and AWS) by Building a Dev Environment – Full Course for Beginners
 https://www.youtube.com/watch?v=iRaai1IBlB0
+
+rest
+[] System Design Concepts Course and Interview Prep
+https://www.youtube.com/watch?v=F2FmTdLtb_4
+
+
+
+
+
+
 
 
 
