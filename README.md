@@ -989,3 +989,81 @@ GIT COMMAND SHEET
 - https://education.github.com/git-cheat-sheet-education.pdf
 - https://git-scm.com/cheat-sheet
 - https://about.gitlab.com/images/press/git-cheat-sheet.pdf
+
+
+## Local test procedures (Ansible & Terraform)
+
+Follow these steps to validate your automation locally before provisioning cloud resources.
+
+Ansible — quick local checks and full VM test
+- Purpose: Validate playbook syntax, role tasks, Docker install, UFW, and systemd unit creation.
+- Quick commands (syntax/lint/check mode):
+
+```bash
+# Syntax check
+ansible-playbook --syntax-check ansible/playbook.yml
+
+# Lint (optional)
+ansible-lint ansible/playbook.yml || true
+
+# Dry-run (simulate changes) using an inventory file
+ansible-playbook -i ansible/inventory_test.ini ansible/playbook.yml --check
+```
+
+- Recommended local run using Multipass (Ubuntu 20.04):
+
+```bash
+# 1) Launch disposable VM
+multipass launch -n cloud1-test 20.04
+
+# 2) Get VM IP (replace below)
+multipass info cloud1-test | grep IPv4
+
+# 3) Create `ansible/inventory_test.ini` with the returned IP, e.g.:
+# [web]
+# 10.1.2.3 ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa
+
+# 4) Run the playbook against the VM (no --check to apply changes)
+ansible-playbook -i ansible/inventory_test.ini ansible/playbook.yml
+```
+
+Notes:
+- Using Multipass gives a near-production Ubuntu environment and avoids changing your workstation.
+- Running with `--check` is useful but not all modules are check-mode safe.
+
+Terraform — validate & plan locally
+- Purpose: verify Terraform syntax and see intended resource changes without creating resources.
+- Commands:
+
+```bash
+cd terraform
+terraform fmt -check
+terraform init
+terraform validate
+
+# Plan for dev environment
+terraform plan -var-file=envs/dev/terraform.tfvars -out=tfplan
+```
+
+Notes:
+- The `data "aws_ami"` lookup queries AWS. Without AWS credentials `terraform plan` may fail.
+- Options if you don't have AWS creds locally:
+  * Provide AWS creds via env vars or `aws_profile` in the tfvars.
+  * Temporarily replace the AMI lookup with a fixed AMI id in `main.tf` for local planning.
+
+End-to-end (real cloud)
+- After local validation, run `terraform apply` (requires AWS credentials) and then run Ansible using an inventory generated from `terraform output`.
+
+```bash
+cd terraform
+terraform apply -var-file=envs/dev/terraform.tfvars
+terraform output -json > ../terraform/tf_outputs.json
+
+# Convert outputs to inventory (example helper not included yet)
+# ./tools/tf-to-inventory.sh ../terraform/tf_outputs.json > ../ansible/inventory_generated.ini
+
+# Run Ansible against real instance
+ansible-playbook -i ansible/inventory_generated.ini ansible/playbook.yml
+```
+
+If you want, I can add helper scripts to automate the Multipass test and to convert Terraform outputs to an Ansible inventory. Tell me to "add helpers" and I will create `tools/test-with-multipass.sh` and `tools/tf-to-inventory.sh` and run them for you.

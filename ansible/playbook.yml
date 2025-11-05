@@ -80,9 +80,9 @@
       ansible.builtin.lineinfile:
         path: /etc/ssh/sshd_config
         regexp: '^PermitRootLogin'
-  line: 'PermitRootLogin no'
-  state: present
-  backup: true
+        line: 'PermitRootLogin no'
+        state: present
+        backup: true
 
     - name: Restart ssh
       ansible.builtin.service:
@@ -108,9 +108,10 @@
 
           [Install]
           WantedBy=multi-user.target
-      notify: daemon-reload
+        mode: '0644'
+        notify: daemon-reload
 
-  handlers:
+    handlers:
     - name: Daemon reload
       ansible.builtin.systemd:
         daemon_reload: true
