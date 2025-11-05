@@ -40,54 +40,24 @@
 * [ ] Test playbook on a local VM/test server.
 * [ ] Debug any issues and ensure idempotency.
 * [ ] Test container networking and persistence after running playbook locally.
-* [ ] Commit playbooks to Git.
 
-### Tasks to do while AWS validates
+### tutorial vids for cloud basics / AWS & terraform setup
 
-While your AWS account is being validated (or if you don't yet have a VM), you can make progress on the automation and infra scaffolding. Complete these items now so you'll be ready to provision and deploy once AWS is available.
+[V] AWS Cloud Engineer Full Course for Beginners
+https://www.youtube.com/watch?v=j_StCjwpfmk
 
-High-level suggested workflow (offline / before AWS validated)
+[V] Cloud Computing Explained: The Most Important Concepts To Know
+https://www.youtube.com/watch?v=ZaA0kNm18pE
 
-1. Create an SSH deploy key (done or follow earlier README example).
-2. Scaffold Terraform files (provider/variables/main/outputs). Do NOT apply until AWS account validated.
-3. Write Ansible playbook + roles to install Docker, deploy your compose stack, configure firewall and service restarts.
-4. Test Ansible against a local Ubuntu 20.04 VM (Multipass or Vagrant).
-5. When AWS is validated: run Terraform to create EC2, then run Ansible (inventory uses Terraform output IP).
+[] Terraform Course - Automate your AWS cloud infrastructure
+https://www.youtube.com/watch?v=SLB_c_ayRMo
 
+[] Learn Terraform (and AWS) by Building a Dev Environment – Full Course for Beginners
+https://www.youtube.com/watch?v=iRaai1IBlB0
 
-Checklist (do in order):
-
-- [ ] Create a deployment SSH key pair and store it securely (you'll upload the public key to AWS later)
-  - Example:
-
-```bash
-ssh-keygen -t ed25519 -C "cloud1-deploy" -f ~/.ssh/cloud1_id_ed25519
-chmod 600 ~/.ssh/cloud1_id_ed25519
-```
-
-- [ ] Harden and parameterize `compose/docker-compose.yml`
-  - Add a `.env.example` with DB and WP vars, use named volumes, and `restart: unless-stopped` policies.
-
-- [ ] Scaffold Ansible playbook and role
-  - Create `ansible/playbook.yml`, `ansible/roles/docker/tasks/main.yml` to install Docker/Docker Compose, clone the repo, deploy `compose/` and run `docker compose up -d`.
-
-- [ ] Add Ansible inventory and variables templates
-  - Add `ansible/inventory.ini.example` and `ansible/vars.yml` (domain, docker_compose_path, ssh_user) so you can plug in the instance IP later.
-
-- [ ] Create a Terraform skeleton (do not `apply` yet)
-  - Add `terraform/provider.tf`, `terraform/variables.tf`, `terraform/main.tf`, and `terraform/outputs.tf` with placeholders for AWS creds and key name.
-
-- [ ] Prepare nginx/TLS templates or notes
-  - Add an nginx reverse-proxy template and document the Certbot or `nginx-proxy` + `letsencrypt-nginx-proxy-companion` option.
-
-- [ ] Choose and document a local test VM option
-  - Multipass, Vagrant, or a local VM — include commands to spin up Ubuntu 20.04 and run Ansible against it for dry-run/testing.
-
-- [ ] Update this `README.md` with the final deployment checklist and commit the scaffolding to a feature branch (example: `infra/scaffold`).
-
-These tasks helps to validate automation locally and reduce friction when the cloud account is ready.
-
-
+rest
+[] System Design Concepts Course and Interview Prep
+https://www.youtube.com/watch?v=F2FmTdLtb_4
 ---
 
 ## **Day 3 — Remote Server Deployment & Basic Security**
@@ -104,6 +74,8 @@ These tasks helps to validate automation locally and reduce friction when the cl
   * Containers restart after reboot → persistence works
 * [ ] Configure firewall, secure DB access (DB not exposed externally).
 * [ ] Optional: minimal TLS setup for HTTPS (basic Let’s Encrypt)
+
+
 
 ---
 
@@ -605,32 +577,6 @@ docker compose -f compose/docker-compose.yml down
 docker compose -f compose/docker-compose.yml up -d
 # Confirm post + file persist in the site UI
 ```
-
-
-## Tutorial vids to watch :
-
-### 1104-1105
-must
-[X] AWS Cloud Engineer Full Course for Beginners
-https://www.youtube.com/watch?v=j_StCjwpfmk
-
-[] Cloud Computing Explained: The Most Important Concepts To Know
-https://www.youtube.com/watch?v=ZaA0kNm18pE
-
-[] Terraform Course - Automate your AWS cloud infrastructure
-https://www.youtube.com/watch?v=SLB_c_ayRMo
-
-[] Learn Terraform (and AWS) by Building a Dev Environment – Full Course for Beginners
-https://www.youtube.com/watch?v=iRaai1IBlB0
-
-rest
-[] System Design Concepts Course and Interview Prep
-https://www.youtube.com/watch?v=F2FmTdLtb_4
-
-
-
-
-
 
 
 
