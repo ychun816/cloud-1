@@ -250,8 +250,6 @@ terraform/
 │   │   ├── outputs.tf
 │   └── s3/
 │       ├── main.tf
-│       ├── variables.tf
-│       ├── outputs.tf
 │
 └── envs/                     # multiple environments
     ├── dev/
