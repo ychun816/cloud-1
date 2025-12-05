@@ -1,5 +1,19 @@
 #!/bin/bash
-set -e  # Exit immediately if a command fails
+set -euo pipefail
+
+# Optional: set SKIP_IMAGE_BUILD=1 to avoid building the local image
+SKIP_IMAGE_BUILD="${SKIP_IMAGE_BUILD:-0}"
+
+# Quick check mode: print whether Docker is installed and its path, then exit.
+if [[ "${1:-}" == "--check" || "${1:-}" == "check-docker" ]]; then
+    if command -v docker >/dev/null 2>&1; then
+        echo "Docker is installed: $(command -v docker)"
+        exit 0
+    else
+        echo "Docker not found"
+        exit 1
+    fi
+fi
 
 # 1. Installs Docker if missing.
 # 2. Builds a Docker image with Terraform + AWS CLI (Dockerfile assumed in project root).
@@ -41,38 +55,50 @@ fi
 # ------------------------------
 # 2. Build Docker image if it doesn't exist
 # ------------------------------
-if [[ "$(docker images -q $IMAGE_NAME 2> /dev/null)" == "" ]]; then
-    echo "Building Docker image '$IMAGE_NAME'..."
-
-    # Search for a Dockerfile in common locations (repo root, compose/, conf/)
-    DOCKERFILE_PATH="$(find . -maxdepth 4 -type f -name Dockerfile | grep -E "(^\./compose/|^\./conf/|^\./)" | head -n 1 || true)"
-
-    if [[ -n "$DOCKERFILE_PATH" ]]; then
-        echo "Found Dockerfile at: $DOCKERFILE_PATH"
-
-        # If the Dockerfile references files in a top-level `tools/` directory
-        # (e.g. "COPY ./tools/..."), we must use the repository root as the
-        # build context so those files are available. Otherwise use the
-        # Dockerfile directory as the build context for a smaller build.
-        if grep -E '(^|[[:space:]])(COPY|ADD)[[:space:]]+(\./|/)?tools/' "$DOCKERFILE_PATH" >/dev/null 2>&1; then
-            BUILD_CONTEXT="."
-            echo "Dockerfile copies files from top-level 'tools/' — using repo root as build context."
-        else
-            BUILD_CONTEXT="$(dirname "$DOCKERFILE_PATH")"
-            echo "Building with context: $BUILD_CONTEXT"
-        fi
-
-        docker build -t "$IMAGE_NAME" -f "$DOCKERFILE_PATH" "$BUILD_CONTEXT"
+if [[ "$(docker images -q "$IMAGE_NAME" 2> /dev/null)" == "" ]]; then
+    if [[ "$SKIP_IMAGE_BUILD" == "1" ]]; then
+        echo "SKIP_IMAGE_BUILD=1 set — skipping local image build for '$IMAGE_NAME'." >&2
     else
-        echo "No Dockerfile found in repository (searched up to depth 4)."
-        echo "Creating a minimal fallback Dockerfile to produce a tiny image."
-        tmpdir=$(mktemp -d)
-        cat > "$tmpdir/Dockerfile" <<'EOF'
+        echo "Building Docker image '$IMAGE_NAME'..."
+
+        # Prefer an explicit tooling Dockerfile if present
+        if [[ -f docker/terraform-aws.Dockerfile ]]; then
+            DOCKERFILE_PATH="docker/terraform-aws.Dockerfile"
+            BUILD_CONTEXT="docker"
+            echo "Found dedicated tooling Dockerfile at: $DOCKERFILE_PATH (context: $BUILD_CONTEXT)"
+            docker build -t "$IMAGE_NAME" -f "$DOCKERFILE_PATH" "$BUILD_CONTEXT"
+        else
+            # Fallback: search for a Dockerfile in common locations (repo root, compose/, conf/)
+            DOCKERFILE_PATH="$(find . -maxdepth 4 -type f -name Dockerfile | grep -E "(^\./compose/|^\./conf/|^\./)" | head -n 1 || true)"
+
+            if [[ -n "$DOCKERFILE_PATH" ]]; then
+                echo "Found Dockerfile at: $DOCKERFILE_PATH"
+
+                # If the Dockerfile references files in a top-level `tools/` directory
+                # (e.g. "COPY ./tools/..."), we must use the repository root as the
+                # build context so those files are available. Otherwise use the
+                # Dockerfile directory as the build context for a smaller build.
+                if grep -E '(^|[[:space:]])(COPY|ADD)[[:space:]]+(\./|/)?tools/' "$DOCKERFILE_PATH" >/dev/null 2>&1; then
+                    BUILD_CONTEXT="."
+                    echo "Dockerfile copies files from top-level 'tools/' — using repo root as build context."
+                else
+                    BUILD_CONTEXT="$(dirname "$DOCKERFILE_PATH")"
+                    echo "Building with context: $BUILD_CONTEXT"
+                fi
+
+                docker build -t "$IMAGE_NAME" -f "$DOCKERFILE_PATH" "$BUILD_CONTEXT"
+            else
+                echo "No Dockerfile found in repository (searched up to depth 4)."
+                echo "Creating a minimal fallback Dockerfile to produce a tiny image."
+                tmpdir=$(mktemp -d)
+                cat > "$tmpdir/Dockerfile" <<'EOF'
 FROM alpine:3.18
 CMD ["/bin/sh"]
 EOF
-        docker build -t "$IMAGE_NAME" "$tmpdir"
-        rm -rf "$tmpdir"
+                docker build -t "$IMAGE_NAME" "$tmpdir"
+                rm -rf "$tmpdir"
+            fi
+        fi
     fi
 else
     echo "Docker image '$IMAGE_NAME' already exists."

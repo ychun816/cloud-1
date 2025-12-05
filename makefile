@@ -72,3 +72,51 @@ check-terraform:
 		echo "Checking Terraform in local image '$(IMAGE_NAME)'..."; \
 		docker run --rm $(IMAGE_NAME) terraform -version; \
 	fi
+
+# Convenience targets for docker-compose and cleanup
+compose-up:
+	@echo "Starting compose stack from compose/docker-compose.yml..."
+	@docker compose -f compose/docker-compose.yml up -d
+
+compose-down:
+	@echo "Stopping compose stack (compose/docker-compose.yml)..."
+	@docker compose -f compose/docker-compose.yml down --volumes --remove-orphans || true
+
+clean: compose-down
+	@echo "Removing local tooling image '$(IMAGE_NAME)' if present..."
+	@if [ -n "$$($(docker) images -q $(IMAGE_NAME) 2> /dev/null)" ]; then \
+		docker rmi -f $(IMAGE_NAME) || true; \
+	fi
+	@echo "Pruning unused docker resources (dangling images, stopped containers, networks)..."
+	@docker system prune -f || true
+	@echo "Verifying no running containers or dangling images remain..."
+	@$(MAKE) clean-check
+
+
+# Check for hanging containers/images. Exits non-zero if anything is found.
+clean-check:
+	@echo "Checking for running containers..."
+	@if [ -n "$$(docker ps -q)" ]; then \
+		echo "ERROR: There are running containers:"; \
+		docker ps --format 'table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Names}}'; \
+		exit 1; \
+	else \
+		echo "No running containers."; \
+	fi
+	@echo "Checking for dangling images..."
+	@if [ -n "$$(docker images -f dangling=true -q)" ]; then \
+		echo "ERROR: Dangling images exist:"; \
+		docker images -f dangling=true; \
+		exit 1; \
+	else \
+		echo "No dangling images."; \
+	fi
+	@echo "Checking for local tooling image '$(IMAGE_NAME)'..."
+	@if [ -n "$$(docker images -q $(IMAGE_NAME) 2> /dev/null)" ]; then \
+		echo "ERROR: Local tooling image '$(IMAGE_NAME)' still present:"; \
+		docker images $(IMAGE_NAME); \
+		exit 1; \
+	else \
+		echo "No local tooling image '$(IMAGE_NAME)' present."; \
+	fi
+	@echo "clean-check: OK"
