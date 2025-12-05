@@ -30,6 +30,15 @@ Extending the old Inception project by:
 * **Ansible:** (Optional) Configure and manage software/settings on provisioned EC2 instances
 * **AWS CLI:** Manage and verify AWS resources, debug deployments, and test credentials.
 
+| Task                                           | Where to put it                         |
+| ---------------------------------------------- | --------------------------------------- |
+| Install Docker/Terraform on host               | Bash script (`init_project.sh`)         |
+| Install Terraform/AWS CLI **inside container** | Dockerfile                              |
+| Run Terraform commands                         | Makefile (calls script or `docker run`) |
+| Multi-container orchestration                  | docker-compose.yml                      |
+
+
+
 #### docker
 - 
 

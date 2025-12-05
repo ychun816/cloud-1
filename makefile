@@ -11,15 +11,30 @@ AWS_PROFILE ?= default
 # Docker image name
 IMAGE_NAME := terraform-aws-env
 
-# Function to ensure Docker image exists
+# Optional: set AUTO_BUILD=1 to allow automatic image build when missing
+# By default we do NOT build automatically to avoid unexpected failures.
+AUTO_BUILD ?= 0
+
+# Function to ensure Docker image exists (POSIX sh compatible)
 define ensure_docker_image
-	@if [[ "$$(docker images -q $(IMAGE_NAME) 2> /dev/null)" == "" ]]; then \
-		echo "Docker image '$(IMAGE_NAME)' not found. Building..."; \
-		./init_project.sh; \
+	@if [ -z "$$($(docker) images -q $(IMAGE_NAME) 2> /dev/null)" ]; then \
+		echo "Docker image '$(IMAGE_NAME)' not found."; \
+		if [ "$$AUTO_BUILD" = "1" ]; then \
+			echo "AUTO_BUILD=1 set — building local image..."; \
+			./init_project.sh; \
+		else \
+			echo "Set 'AUTO_BUILD=1' to allow automatic builds, or run 'make build-image' to build manually."; \
+			exit 1; \
+		fi; \
 	else \
 		echo "Docker image '$(IMAGE_NAME)' exists."; \
 	fi
 endef
+
+# Explicit build target: run the project init script to build the image
+build-image:
+	@echo "Building local Docker image '$(IMAGE_NAME)'..."
+	@./init_project.sh
 
 # Terraform initialization
 init:
@@ -44,3 +59,16 @@ destroy:
 	@$(call ensure_docker_image)
 	@echo "Destroying Terraform-managed infrastructure..."
 	./init_project.sh destroy
+
+# Quick check: verify Terraform is available inside a container
+# - If the local `$(IMAGE_NAME)` image exists, check there.
+# - Otherwise use the official HashiCorp Terraform image so we don't need to build the local image.
+
+check-terraform:
+	@if [ -z "$$($(docker) images -q $(IMAGE_NAME) 2> /dev/null)" ]; then \
+		echo "Local image '$(IMAGE_NAME)' not found — using official HashiCorp Terraform image to check..."; \
+		docker run --rm hashicorp/terraform:latest terraform -version || docker run --rm hashicorp/terraform:light terraform -version; \
+	else \
+		echo "Checking Terraform in local image '$(IMAGE_NAME)'..."; \
+		docker run --rm $(IMAGE_NAME) terraform -version; \
+	fi
