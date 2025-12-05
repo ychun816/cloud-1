@@ -2,10 +2,21 @@
 
 ## Learning tutorials 
 
-- (Official) [Get Started - AWS](https://developer.hashicorp.com/terraform/tutorials/aws-get-started)
+### Terraform
+
+- [Create infrastructure](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/aws-create)
 
 - [Terraform Course - Automate your AWS cloud infrastructure](https://www.youtube.com/watch?v=SLB_c_ayRMo)
+- [Complete Terraform Course - From BEGINNER to PRO! (Learn Infrastructure as Code)](https://www.youtube.com/watch?v=7xngnjfIlK4&t=56s)
+- [Learn Terraform (and AWS) by Building a Dev Environment – Full Course for Beginners](https://www.youtube.com/watch?v=iRaai1IBlB0&t=254s)
+- [Terraform Tutorial for Beginners + Labs: Complete Step by Step Guide](https://www.youtube.com/watch?v=YcJ9IeukJL8)
 
+
+
+### terrafrom sourcing AWS
+- [Resource: aws_instance](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance)
+
+- (Official) [Get Started - AWS](https://developer.hashicorp.com/terraform/tutorials/aws-get-started)
 
 
 ## terraform structure

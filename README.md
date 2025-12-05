@@ -20,8 +20,23 @@ Extending the old Inception project by:
 | **Networking**  | Local Docker bridge network                  | Server-level Docker network, secure routing              |
 | **Security**    | Local access only                            | Public access secured by firewall + HTTPS                |
 | **Objective**   | Learn containerization & orchestration       | Learn DevOps automation & infrastructure-as-code         |
+---
+## general setup
+* **Bash script:** Procedural environment setup (install Docker, build images, verify credentials).
+* **Makefile:** Project task automation (run Terraform commands inside Docker).
+> This combination is portable, maintainable, and readable, which aligns with industry DevOps workflows.
+* **Docker:** Isolated, portable environment for Terraform + AWS CLI
+* **Terraform:** Infrastructure as Code for provisioning EC2 and AWS resources.
+* **Ansible:** (Optional) Configure and manage software/settings on provisioned EC2 instances
+* **AWS CLI:** Manage and verify AWS resources, debug deployments, and test credentials.
+
+#### docker
+- 
+
+ / terraform / ansible / AWS CLI
 
 
+---
 ## project repo structure
 - `ansible/` → automation logic
 - `compose/` → service definitions
