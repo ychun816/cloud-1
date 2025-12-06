@@ -87,31 +87,31 @@ help:
 # Explicit build target: run the project init script to build the image
 init-env:
 	@echo "Building local Docker image '$(IMAGE_NAME)'..."
-	@./init_project.sh
+	@./init_env.sh
 
 # Terraform initialization
 tf-init:
 	@$(call ensure_docker_image)
 	@echo "Initializing Terraform..."
-	./init_project.sh init
+	./init_env.sh init
 
 # Terraform plan
 tf-plan:
 	@$(call ensure_docker_image)
 	@echo "Running Terraform plan..."
-	./init_project.sh plan
+	./init_env.sh plan
 
 # Terraform apply
 tf-apply:
 	@$(call ensure_docker_image)
 	@echo "Applying Terraform configuration..."
-	./init_project.sh apply
+	./init_env.sh apply
 
 # Terraform destroy
 tf-destroy:
 	@$(call ensure_docker_image)
 	@echo "Destroying Terraform-managed infrastructure..."
-	./init_project.sh destroy
+	./init_env.sh destroy
 
 # Quick check: verify Terraform is available inside a container
 # - If the local `$(IMAGE_NAME)` image exists, check there.
