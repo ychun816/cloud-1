@@ -80,7 +80,7 @@ help:
 	@echo "  tf-destroy        Destroy Terraform-managed infrastructure"
 	@echo "  compose-up        Start docker-compose stack (compose/docker-compose.yml)"
 	@echo "  compose-down      Stop docker-compose stack (compose/docker-compose.yml)"
-	@echo "  cleanup           Remove local Docker image and prune unused resources"
+	@echo "  clean             Remove local Docker image and prune unused resources"
 	@echo "  clean-check       Check for running containers, dangling images, or local images"
 	@echo ""
 
@@ -134,18 +134,31 @@ compose-up:
 compose-down:
 	@echo "Stopping compose stack (compose/docker-compose.yml)..."
 	@docker compose -f compose/docker-compose.yml down --volumes --remove-orphans || true
-cleanup: compose-down
+
+# Consolidated clean target: stop compose, remove tooling image, prune and verify
+clean: compose-down
 	@echo "Removing local tooling image '$(IMAGE_NAME)' if present..."
-	@if [ -n "$$($(docker) images -q $(IMAGE_NAME) 2> /dev/null)" ]; then \
-		docker rmi -f $(IMAGE_NAME) || true; \
+	@ids="$$(docker images -q $(IMAGE_NAME) 2> /dev/null || true)"; \
+	if [ -n "$$ids" ]; then \
+		echo "Found image ids: $$ids"; \
+		for id in $$ids; do \
+			echo "Removing $$id..."; \
+			docker rmi -f $$id || true; \
+		done; \
+		# small retry in case Docker needs a moment to release layers; \
+		sleep 1; \
+		ids2="$$(docker images -q $(IMAGE_NAME) 2> /dev/null || true)"; \
+		if [ -n "$$ids2" ]; then \
+			echo "Retry removing remaining images: $$ids2"; \
+			for id in $$ids2; do docker rmi -f $$id || true; done; \
+		fi; \
+	else \
+		echo "No local tooling image '$(IMAGE_NAME)' present."; \
 	fi
 	@echo "Pruning unused docker resources (dangling images, stopped containers, networks)..."
 	@docker system prune -f || true
 	@echo "Verifying no running containers or dangling images remain..."
 	@$(MAKE) clean-check
-
-# alias for compatibility
-clean: cleanup
 
 
 # Check for hanging containers/images. Exits non-zero if anything is found.
@@ -174,4 +187,14 @@ clean-check:
 	else \
 		echo "No local tooling image '$(IMAGE_NAME)' present."; \
 	fi
-	@echo "clean-check: OK"
+	@echo "\nclean-check: OK\n"
+
+
+#############
+# Build the tooling image (context is the 'docker' directory)
+# docker build -t terraform-aws-env -f docker/terraform-aws.Dockerfile docker
+
+# # Verify versions in the rebuilt image
+# docker run --rm terraform-aws-env terraform --version
+# docker run --rm terraform-aws-env aws --version
+#############
