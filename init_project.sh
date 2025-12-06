@@ -1,6 +1,17 @@
 #!/bin/bash
 set -euo pipefail
 
+# COLOR SETTINGS
+COLOR_BOLD='\033[1m'
+COLOR_RESET='\033[0m'
+COLOR_LIGHT_ORANGE_BG='\033[48;5;215m'
+COLOR_BLACK_FG='\033[38;5;16m'
+
+# green foreground (256-color)
+COLOR_GREEN_FG='\033[38;5;34m'
+
+
+
 # Optional: set SKIP_IMAGE_BUILD=1 to avoid building the local image
 SKIP_IMAGE_BUILD="${SKIP_IMAGE_BUILD:-0}"
 
@@ -49,7 +60,7 @@ if ! command -v docker &> /dev/null; then
 
     echo "Docker installed successfully!"
 else
-    echo "Docker is already installed."
+    printf "${COLOR_BOLD}${COLOR_BLACK_FG}${COLOR_LIGHT_ORANGE_BG}%s${COLOR_RESET}\n" "Docker is already installed."
 fi
 
 # ------------------------------
@@ -101,7 +112,9 @@ EOF
         fi
     fi
 else
-    echo "Docker image '$IMAGE_NAME' already exists."
+    printf "${COLOR_BOLD}${COLOR_BLACK_FG}\033[48;5;208m%s${COLOR_RESET}\n" "Docker image '$IMAGE_NAME' already exists."
+    # Bold green text with no background
+    printf "${COLOR_BOLD}${COLOR_GREEN_FG}%s${COLOR_RESET}\n" "Entering Docker Container '$IMAGE_NAME'..."
 fi
 
 # ------------------------------
