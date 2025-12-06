@@ -10,8 +10,6 @@ COLOR_BLACK_FG='\033[38;5;16m'
 # green foreground (256-color)
 COLOR_GREEN_FG='\033[38;5;34m'
 
-
-
 # Optional: set SKIP_IMAGE_BUILD=1 to avoid building the local image
 SKIP_IMAGE_BUILD="${SKIP_IMAGE_BUILD:-0}"
 

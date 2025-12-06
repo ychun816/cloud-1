@@ -23,7 +23,7 @@ define ensure_docker_image
 			echo "AUTO_BUILD=1 set — building local image..."; \
 			./init_project.sh; \
 		else \
-			echo "Set 'AUTO_BUILD=1' to allow automatic builds, or run 'make build-image' to build manually."; \
+			echo "Set 'AUTO_BUILD=1' to allow automatic builds, or run 'make build-env' to build manually."; \
 			exit 1; \
 		fi; \
 	else \
@@ -31,31 +31,84 @@ define ensure_docker_image
 	fi
 endef
 
+# Default target: run check-env
+.DEFAULT_GOAL := check-env
+
+# Check environment: Docker present and running, and Terraform+AWS CLI available in tooling image (or official images)
+check-env:
+	@echo "Checking Docker availability..."
+	@if command -v docker >/dev/null 2>&1; then \
+		if docker info >/dev/null 2>&1; then \
+			echo "Docker daemon is running"; \
+			echo "== Current running containers =="; \
+			docker ps --format 'table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Names}}\n' || true; \
+		else \
+			echo "Docker CLI found but daemon is not running or not accessible (try 'systemctl start docker' or check permissions)"; exit 1; \
+		fi; \
+	else \
+		echo "Docker is not installed. Install Docker or run 'make build-env' if you have a script to install it."; exit 1; \
+	fi
+
+	@echo "Checking Terraform in tooling image or official image..."
+	@if [ -n "$$($(docker) images -q $(IMAGE_NAME) 2> /dev/null)" ]; then \
+		echo "Terraform version (from $(IMAGE_NAME)):"; \
+		docker run --rm $(IMAGE_NAME) terraform -version || (echo "ERROR: terraform not available in $(IMAGE_NAME)\n" && exit 1); \
+	else \
+		echo "Terraform version (from official hashicorp/terraform image):"; \
+		docker run --rm hashicorp/terraform:latest terraform -version || (echo "ERROR: terraform not available in official image" && exit 1); \
+		echo ""; \
+	fi
+
+	@echo "Checking AWS CLI in tooling image or official image..."
+	@if [ -n "$$($(docker) images -q $(IMAGE_NAME) 2> /dev/null)" ]; then \
+		echo "AWS CLI version (from $(IMAGE_NAME)):"; \
+		docker run --rm $(IMAGE_NAME) --version || (echo "ERROR: aws CLI not available in $(IMAGE_NAME)" && exit 1); \
+	else \
+		echo "AWS CLI version (from official amazon/aws-cli image):"; \
+		docker run --rm amazon/aws-cli --version || (echo "ERROR: aws CLI not available in official image" && exit 1); \
+	fi
+
+# help | commands check
+help:
+	@echo "MAKE COMMANDS | Available targets: "
+	@echo ""
+	@echo "  check-env         Ensure Docker is installed and running with Terraform & AWS CLI installed"
+	@echo "  init-env          Build the local Docker image '$(IMAGE_NAME)'"
+	@echo "  tf-init           Initialize Terraform"
+	@echo "  tf-plan           Run Terraform plan"
+	@echo "  tf-apply          Apply Terraform configuration"
+	@echo "  tf-destroy        Destroy Terraform-managed infrastructure"
+	@echo "  compose-up        Start docker-compose stack (compose/docker-compose.yml)"
+	@echo "  compose-down      Stop docker-compose stack (compose/docker-compose.yml)"
+	@echo "  cleanup           Remove local Docker image and prune unused resources"
+	@echo "  clean-check       Check for running containers, dangling images, or local images"
+	@echo ""
+
 # Explicit build target: run the project init script to build the image
-build-image:
+init-env:
 	@echo "Building local Docker image '$(IMAGE_NAME)'..."
 	@./init_project.sh
 
 # Terraform initialization
-init:
+tf-init:
 	@$(call ensure_docker_image)
 	@echo "Initializing Terraform..."
 	./init_project.sh init
 
 # Terraform plan
-plan:
+tf-plan:
 	@$(call ensure_docker_image)
 	@echo "Running Terraform plan..."
 	./init_project.sh plan
 
 # Terraform apply
-apply:
+tf-apply:
 	@$(call ensure_docker_image)
 	@echo "Applying Terraform configuration..."
 	./init_project.sh apply
 
 # Terraform destroy
-destroy:
+tf-destroy:
 	@$(call ensure_docker_image)
 	@echo "Destroying Terraform-managed infrastructure..."
 	./init_project.sh destroy
@@ -81,8 +134,7 @@ compose-up:
 compose-down:
 	@echo "Stopping compose stack (compose/docker-compose.yml)..."
 	@docker compose -f compose/docker-compose.yml down --volumes --remove-orphans || true
-
-clean: compose-down
+cleanup: compose-down
 	@echo "Removing local tooling image '$(IMAGE_NAME)' if present..."
 	@if [ -n "$$($(docker) images -q $(IMAGE_NAME) 2> /dev/null)" ]; then \
 		docker rmi -f $(IMAGE_NAME) || true; \
@@ -91,6 +143,9 @@ clean: compose-down
 	@docker system prune -f || true
 	@echo "Verifying no running containers or dangling images remain..."
 	@$(MAKE) clean-check
+
+# alias for compatibility
+clean: cleanup
 
 
 # Check for hanging containers/images. Exits non-zero if anything is found.

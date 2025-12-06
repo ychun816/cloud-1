@@ -29,6 +29,9 @@ Extending the old Inception project by:
 * **Terraform:** Infrastructure as Code for provisioning EC2 and AWS resources.
 * **Ansible:** (Optional) Configure and manage software/settings on provisioned EC2 instances
 * **AWS CLI:** Manage and verify AWS resources, debug deployments, and test credentials.
+> [AWS CLI setup](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html)
+> [Installing or updating to the latest version of the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+
 
 | Task                                           | Where to put it                         |
 | ---------------------------------------------- | --------------------------------------- |
