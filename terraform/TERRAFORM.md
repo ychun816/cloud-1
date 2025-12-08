@@ -18,6 +18,57 @@
 
 - (Official) [Get Started - AWS](https://developer.hashicorp.com/terraform/tutorials/aws-get-started)
 
+## ascii diagram overview 
+```
+           +------------------------------------+
+           |         1. AWS Credentials          |
+           |    (aws configure OR env vars)      |
+           +------------------------------------+
+                               |
+                               v
+           +------------------------------------+
+           |          2. SSH Keypair            |
+           |   (create cloud1_id_ed25519)        |
+           +------------------------------------+
+                               |
+                               v
+           +------------------------------------+
+           |   3. Terraform Files Prepared      |
+           |   main.tf / variables.tf / tfvars   |
+           +------------------------------------+
+                               |
+                               v
+           +------------------------------------+
+           |        4. terraform init            |
+           | (downloads AWS provider plugin)      |
+           +------------------------------------+
+                               |
+                               v
+           +------------------------------------+
+           |   5. terraform plan (dry-run)       |
+           |  (preview changes, no real actions) |
+           +------------------------------------+
+                               |
+                               v
+           +------------------------------------+
+           |       6. terraform apply            |
+           |  (Creates EC2, SG, Key Pair, etc.)  |
+           +------------------------------------+
+                               |
+                               v
+           +------------------------------------+
+           |        7. terraform output          |
+           | (get IP, DNS, instance info)        |
+           +------------------------------------+
+                               |
+                               v
+           +------------------------------------+
+           |         8. SSH into EC2             |
+           |   ssh -i key ubuntu@public-ip       |
+           +------------------------------------+
+
+```
+
 
 ## terraform structure
 ```

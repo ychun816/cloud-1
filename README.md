@@ -49,163 +49,136 @@ Extending the old Inception project by:
 
 
 ---
-## project repo structure
-- `ansible/` → automation logic
-- `compose/` → service definitions
+## project repo structure (consolidated)
+- `terraform/` → infrastructure (VPC, SG, EC2) with reusable modules and env tfvars
+- `ansible/` → server configuration and app deployment (uses Terraform outputs)
+- `compose/` → container definitions and configs used by Ansible
+
 ```bash
 cloud-1/
-├── ansible/
-│   ├── playbook.yml
-│   ├── hosts.ini
-│   └── roles/
-│       └── docker/
-│           └── tasks/main.yml
-├── compose/
-│   ├── docker-compose.yml
-│   └── conf/
-│       ├── nginx/
-│       ├── wordpress/
-│       └── mariadb/
-└── README.md
-
-```
-- full repo structure (+anisible, terraform, ...)
-```bash
-cloud-inception/
 ├── README.md
 ├── terraform/
 │   ├── main.tf
 │   ├── variables.tf
 │   ├── outputs.tf
-│   └── provider.tf
+│   ├── terraform.tfvars
+│   └── modules/
+│       ├── network/
+│       │   ├── main.tf
+│       │   ├── variables.tf
+│       │   └── outputs.tf
+│       └── ec2/
+│           ├── main.tf
+│           ├── variables.tf
+│           └── outputs.tf
 ├── ansible/
 │   ├── inventory.ini
 │   ├── playbook.yml
 │   └── roles/
-│       └── docker/
+│       └── webserver/
 │           ├── tasks/
 │           │   └── main.yml
-│           └── templates/
-│               └── docker-compose.yml.j2
+│           ├── templates/
+│           └── files/
 └── compose/
-    ├── mariadb/
-    │   ├── Dockerfile
-    │   └── conf/
-    │       └── init_mariadb.sh
+  ├── docker-compose.yml
+  └── conf/
     ├── nginx/
-    │   ├── Dockerfile
-    │   └── conf/
-    │       └── nginx.conf
+    │   └── nginx.conf
     ├── wordpress/
-    │   ├── Dockerfile
-    │   └── conf/
-    │       └── www.conf
-    └── .env
-
+    │   └── www.conf
+    └── mariadb/
+      └── init_mariadb.sh
 ```
+
+## Notes
+- Terraform provisions infrastructure (VPC, subnets, security groups, EC2) using reusable modules.
+- Ansible configures the EC2 instance(s) after Terraform apply (install packages, configure services, deploy app).
+- Use `terraform outputs` to feed IP/DNS into `ansible/inventory.ini`.
 
 
 ## project structure (ASCII GRAPHIC)
 
-“big picture” of your Automated Inception project:
+“big picture” of your Automated Inception project (Terraform + Ansible):
 ```bash
-                        ┌────────────────────────────┐
-                        │  Your Laptop (Local)       │
-                        │────────────────────────────│
-                        │ - Git repository (code)    │
-                        │ - Ansible playbooks        │
-                        │ - docker-compose.yml       │
-                        │ - SSH key                  │
-                        └──────────────┬─────────────┘
-                                       │ SSH (port 22)
-                                       ▼
-                   ┌──────────────────────────────────────────────┐
-                   │  Remote Server (Ubuntu 20.04)                │
-                   │──────────────────────────────────────────────│
-                   │  Ansible installs & configures:              │
-                   │    1. Docker & Docker Compose                │
-                   │    2. Firewall & TLS certificates            │
-                   │    3. Starts containers automatically        │
-                   │----------------------------------------------│
-                   │  Containers (each service isolated):         │
-                   │                                              │
-                   │  ┌───────────┐   ┌────────────┐              │
-                   │  │ WordPress │◄──│  MySQL DB  │              │
-                   │  └───────────┘   └────────────┘              │
-                   │        ▲              ▲                      │
-                   │        │              │                      │
-                   │  ┌─────────────┐      │                      │
-                   │  │ phpMyAdmin  │──────┘                      │
-                   │  └─────────────┘                             │
-                   │        │                                     │
-                   │  ┌─────────────┐                             │
-                   │  │ Nginx Proxy │──▶ HTTPS (TLS) ─▶ Internet  │
-                   │  └─────────────┘                             │
-                   └──────────────────────────────────────────────┘
-
+                        ┌──────────────────────────────────────┐
+                        │  Your Laptop (Local)                 │
+                        │──────────────────────────────────────│
+                        │ - Git repo (terraform/ ansible/      │
+                        │   compose/)                          │
+                        │ - SSH key                            │
+                        │ - AWS CLI credentials                │
+                        └──────────────┬─────────────┬─────────┘
+                                       │             │
+                                       │             │
+                                       ▼             ▼
+                     ┌─────────────────────┐   ┌───────────────────────┐
+                     │  Terraform (IaC)    │   │  Ansible (Config)     │
+                     │─────────────────────│   │───────────────────────│
+                     │ - terraform/        │   │ - ansible/            │
+                     │   - main.tf         │   │   - inventory.ini      │
+                     │   - variables.tf    │   │   - playbook.yml       │
+                     │   - outputs.tf      │   │   - roles/webserver    │
+                     │   - modules/{vpc,   │   │     (tasks/templates)  │
+                     │     ec2}            │   │                       │
+                     └──────────┬──────────┘   └──────────┬────────────┘
+                                │                         │
+                                │ terraform apply         │
+                                │ emits outputs (IP/DNS)  │
+                                │                         │ consumes outputs
+                                ▼                         │ (inventory)
+                   ┌──────────────────────────────────────────────────┐
+                   │  AWS Cloud (Ubuntu 20.04 EC2)                    │
+                   │──────────────────────────────────────────────────│
+                   │  Provisioned by Terraform:                       │
+                   │   • VPC, subnets, internet gateway               │
+                   │   • Security Group (SSH/HTTP/HTTPS)              │
+                   │   • EC2 Instance (Ubuntu AMI)                    │
+                   │                                                  │
+                   │  Configured by Ansible:                          │
+                   │   • Installs Docker & Docker Compose             │
+                   │   • Deploys compose/ services                    │
+                   │     - NGINX (Reverse Proxy + TLS)                │
+                   │     - WordPress (PHP/APP)                        │
+                   │     - MariaDB (DB)                               │
+                   │     - (optional) phpMyAdmin                      │
+                   │                                                  │
+                   │  Access: HTTPS via NGINX → Internet              │
+                   └──────────────────────────────────────────────────┘
 ```
 
 
 ```bash
-                    ┌─────────────────────────────-─┐
-                    │   Your Local Machine          │
-                    │────────────────────────────-──│
-                    │  - Write docker-compose.yml   │
-                    │  - Write Ansible playbooks    │
-                    │  - Test containers locally    │
-                    │  - Push to Git repository     │
-                    └──────────────┬───────────────-┘
+                    ┌──────────────────────────────────────┐
+                    │   Local Dev Workflow                 │
+                    │──────────────────────────────────────│
+                    │  - Edit terraform/ & ansible/        │
+                    │  - Test compose/ locally (optional)  │
+                    │  - Push to Git repository            │
+                    └──────────────┬───────────────┬──────┘
+                                   │               │
+                                   │ terraform     │ ansible
+                                   ▼               ▼
+        ┌────────────────────────────────────────────────────┐
+        │        Remote Ubuntu 20.04 EC2 (Provisioned)       │
+        │────────────────────────────────────────────────────│
+        │  Ansible runs:                                     │
+        │   • Updates packages                                │
+        │   • Installs Docker & Compose                       │
+        │   • Renders compose templates (roles/webserver)     │
+        │   • Runs `docker compose up -d`                     │
+        │   • Configures firewall & TLS (HTTPS)               │
+        │────────────────────────────────────────────────────│
+        │  Services:                                          │
+        │   • NGINX (TLS)  • WordPress  • MariaDB  • phpMyAdmin│
+        └────────────────────────────────────────────────────┘
                                    │
-                                   │ SSH + Git Clone
-                                   ▼
-        ┌─────────────────────────────────────-──────-──┐
-        │        Remote Ubuntu 20.04 Server             │
-        │──────────────────────────────────-────────-───│
-        │  Ansible Automation runs here:                │
-        │   • Updates system packages                   │
-        │   • Installs Docker & Compose                 │
-        │   • Pulls your Git repo                       │
-        │   • Runs `docker-compose up -d`               │
-        │   • Configures firewall & TLS (HTTPS)         │
-        │─────────────────────────────────────────--────│
-        │         Docker Compose Orchestrator           │
-        │────────────────────────────-────────────────-─│
-        │   ┌───────────────────────-──────┐            │
-        │   │ NGINX (Reverse Proxy)        │◄───TLS───┐ │
-        │   │ - Routes requests            │            │
-        │   │ - HTTPS via Let's Encrypt    │            │
-        │   └──────────────┬───────────────┘            │
-        │                  │                            │
-        │                  ▼                            │
-        │   ┌──────────────────────────-───┐            │
-        │   │ WordPress Container          │            │
-        │   │ - Runs PHP + WP engine       │            │
-        │   │ - Stores uploads in volume   │            │
-        │   └──────────────┬───────────────┘            │
-        │                  │                            │
-        │                  ▼                            │
-        │   ┌─────────────────────────────┐             │
-        │   │ MySQL/MariaDB Container     │             │
-        │   │ - Stores posts, users       │             │
-        │   │ - Persistent DB volume      │             │
-        │   └─────────────────────────────┘             │
-        │                                               │
-        │   (optional)                                  │
-        │   ┌─────────────────────────────┐             │
-        │   │ phpMyAdmin Container        │             │
-        │   │ - Internal DB management UI │             │
-        │   │ - Accessible via NGINX proxy│             │
-        │   └─────────────────────────────┘             │
-        └───────────────────────────────────────────────┘
-                                   │
-                                   │
-                        Browser Access (HTTPS)
-                                   │
+                                   │ HTTPS
                                    ▼
                 ┌────────────────────────────────┐
                 │     Your WordPress Website     │
-                │  - Secure via NGINX + TLS      │
-                │  - Data persistent in volumes  │
+                │  - NGINX + TLS                 │
+                │  - Persistent volumes          │
                 │  - Deployable via automation   │
                 └────────────────────────────────┘
 ```

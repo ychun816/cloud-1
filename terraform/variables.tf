@@ -1,45 +1,51 @@
-// Variable: aws_region
-// - description: human-readable explanation used by `terraform plan` and docs
-// - type: expected data type
-// - default: fallback value when no override is provided
+// ======================================================
+// Terraform input variables
+// ======================================================
+
+// AWS region to deploy into
 variable "aws_region" {
   description = "AWS region to deploy into"
   type        = string
   default     = "us-east-1"
 }
 
-// Variable: aws_profile
-// - optional: if set, Terraform/AWS provider will try the named profile in ~/.aws/credentials
-// - when empty, Terraform uses environment credentials (AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY)
+// Optional AWS CLI profile
 variable "aws_profile" {
   description = "Optional AWS CLI profile name"
   type        = string
   default     = ""
 }
 
-// Variable: instance_type
-// - EC2 machine type used for the web instance (e.g., t3a.small, t3a.medium)
-// - Choose smaller types for dev to save costs and larger types for prod for capacity
+// EC2 instance type (t3a.small for dev, t2.micro also works)
 variable "instance_type" {
   description = "EC2 instance type"
   type        = string
   default     = "t3a.small"
 }
 
-// Variable: key_name
-// - If you already created a KeyPair in AWS, set its name here so the instance will be accessible via SSH
-// - If left empty, you can optionally have Terraform create an aws_key_pair from a local public key
+// Name of an existing AWS key pair
 variable "key_name" {
-  description = "Name of an existing AWS key pair to use (optional). If empty, import-key-pair can be used."
+  description = "Existing AWS key pair name to allow SSH access"
   type        = string
-  default     = ""
 }
 
-// Variable: public_key_path
-// - Path on your workstation to the public SSH key file (e.g. ~/.ssh/id_ed25519.pub)
-// - Used only if you enable the optional `aws_key_pair` resource that reads this file and uploads it to AWS
+// Optional path to public key if Terraform should create a key pair
 variable "public_key_path" {
-  description = "Absolute path to the public key file; used if creating an aws_key_pair resource"
+  description = "Path to public key for Terraform to create a keypair (optional)"
   type        = string
-  default     = "/home/YOURUSER/.ssh/cloud1_id_ed25519.pub"
+  default     = "~/.ssh/id_ed25519.pub"
+}
+
+// Allowed CIDR for SSH access
+variable "allowed_ssh_cidr" {
+  description = "CIDR block allowed to SSH into EC2"
+  type        = string
+  default     = "YOUR_IP/32" // Replace with your own IP for security
+}
+
+// Optional environment label for tagging
+variable "environment" {
+  description = "Environment label for tags"
+  type        = string
+  default     = "dev"
 }
