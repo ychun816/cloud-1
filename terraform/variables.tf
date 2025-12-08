@@ -25,27 +25,30 @@ variable "instance_type" {
 
 // Name of an existing AWS key pair
 variable "key_name" {
-  description = "Existing AWS key pair name to allow SSH access"
+  description = "sophia_mac"
   type        = string
-}
-
-// Optional path to public key if Terraform should create a key pair
-variable "public_key_path" {
-  description = "Path to public key for Terraform to create a keypair (optional)"
-  type        = string
-  default     = "~/.ssh/id_ed25519.pub"
 }
 
 // Allowed CIDR for SSH access
 variable "allowed_ssh_cidr" {
   description = "CIDR block allowed to SSH into EC2"
   type        = string
-  default     = "YOUR_IP/32" // Replace with your own IP for security
+  default     = "YOUR_IP/32"
 }
 
+// ======================================================
+// OPTIONAL 
+// ======================================================
 // Optional environment label for tagging
-variable "environment" {
-  description = "Environment label for tags"
-  type        = string
-  default     = "dev"
-}
+// variable "environment" {
+//   description = "Environment name (used for tagging, Environment label for tags)"
+//   type        = string
+//   default     = "dev"
+// }
+
+// Optional path to public key if Terraform should create a key pair
+// variable "public_key_path" {
+//   description = "Path to public key for Terraform to create a keypair (optional)"
+//   type        = string
+//   default     = "~/.ssh/id_ed25519.pub"
+// }
