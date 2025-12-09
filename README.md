@@ -4,6 +4,27 @@
 ## Index Table (to be added)
 ---
 
+## TODO: AWS auth → Terraform plan
+
+Use this concise checklist to go from tools-installed to a verified Terraform plan:
+
+1. Choose AWS auth method
+  - Prefer SSO: `aws configure sso` (name a profile, e.g., `cloud-1-dev`).
+  - Or access keys: `aws configure --profile cloud-1-dev`.
+2. Log in and verify credentials
+  - SSO login: `aws sso login --profile cloud-1-dev`.
+  - Verify: `AWS_PROFILE=cloud-1-dev aws sts get-caller-identity`.
+3. Pick environment
+  - Select one: `dev`, `staging`, or `prod` (see `terraform/envs/<env>/terraform.tfvars`).
+4. Initialize Terraform
+  - `cd terraform && export AWS_PROFILE=cloud-1-dev && terraform init`.
+5. Run plan
+  - `terraform plan -var-file envs/dev/terraform.tfvars` (swap `dev` for your env).
+6. Apply (optional)
+  - `terraform apply -var-file envs/dev/terraform.tfvars`.
+
+Optional local stack: `make compose-up`.
+
 ## porject brief 
 Previous Inception project + automation + cloud infrastructure, 
 Extending the old Inception project by:
