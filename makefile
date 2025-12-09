@@ -36,27 +36,44 @@ endef
 
 # Check environment: Docker present and running, and Terraform+AWS CLI available in tooling image (or official images)
 check-tools:
-	@echo "Checking local Terraform and AWS CLI installation..."
-	@echo "\n[Terraform]"
-	@if command -v terraform >/dev/null 2>&1; then \
-		terraform -version; \
+	@echo "Checking local tools (Ansible, Terraform, AWS CLI)..."
+	@need_setup=0; \
+	echo "\n[Ansible]"; \
+	if command -v ansible >/dev/null 2>&1; then \
+		ansible --version | head -n 1; \
+	else \
+		echo "Ansible not found on PATH."; \
+		need_setup=1; \
+	fi; \
+	echo "\n[Terraform]"; \
+	if command -v terraform >/dev/null 2>&1; then \
+		terraform -version | head -n 1; \
 	else \
 		echo "Terraform not found on PATH."; \
-		echo "Install via Homebrew: 'brew tap hashicorp/tap && brew install hashicorp/tap/terraform'"; \
-		echo "Or download from https://developer.hashicorp.com/terraform/install"; \
-		exit 1; \
-	fi
-	@echo "\n[AWS CLI]"
-	@if command -v aws >/dev/null 2>&1; then \
+		need_setup=1; \
+	fi; \
+	echo "\n[AWS CLI]"; \
+	if command -v aws >/dev/null 2>&1; then \
 		aws --version; \
 	else \
 		echo "AWS CLI not found on PATH."; \
-		echo "Install via Homebrew: 'brew install awscli'"; \
-		echo "Or download the macOS installer: https://awscli.amazonaws.com/AWSCLIV2.pkg"; \
-		exit 1; \
-	fi
-	@echo "\n[Optional] Verifying AWS credentials (sts:get-caller-identity)"
-	@aws sts get-caller-identity 2>/dev/null || echo "Note: AWS credentials not configured or invalid. Run 'aws configure' if needed."
+		need_setup=1; \
+	fi; \
+	if [ "$$need_setup" -ne 0 ]; then \
+		echo "\nOne or more tools are missing. Attempting to install via 'make setup-tools'..."; \
+		$(MAKE) setup-tools || exit 1; \
+		echo "\nRe-checking tools after setup..."; \
+		missing=0; \
+		command -v ansible >/dev/null 2>&1 || { echo "Ansible still missing."; missing=1; }; \
+		command -v terraform >/dev/null 2>&1 || { echo "Terraform still missing."; missing=1; }; \
+		command -v aws >/dev/null 2>&1 || { echo "AWS CLI still missing."; missing=1; }; \
+		if [ "$$missing" -ne 0 ]; then \
+			echo "\nERROR: Some tools are still missing after setup. See logs above for details."; \
+			exit 1; \
+		fi; \
+	fi; \
+	echo "\n[Optional] Verifying AWS credentials (sts:get-caller-identity)"; \
+	aws sts get-caller-identity 2>/dev/null || echo "Note: AWS credentials not configured or invalid. Run 'aws configure' if needed."
 
 # help | commands check
 help:
@@ -184,8 +201,34 @@ clean-check:
 
 # Install local tools using Ansible (macOS)
 setup-tools:
-	@echo "Installing Terraform & AWS CLI locally via Ansible..."
-	@cd ansible && ANSIBLE_CONFIG=ansible.cfg ansible-playbook tools.yml
+	@echo "Ensuring Ansible is installed (via Homebrew, pipx, or pip3)..."
+	@if command -v ansible >/dev/null 2>&1; then \
+		echo "Ansible already installed."; \
+	else \
+		if command -v brew >/dev/null 2>&1; then \
+			echo "Installing Ansible via Homebrew..."; \
+			brew update >/dev/null 2>&1 || true; \
+			brew install ansible || { echo "Failed to install Ansible with Homebrew"; exit 1; }; \
+		elif command -v pipx >/dev/null 2>&1; then \
+			echo "Installing Ansible via pipx..."; \
+			pipx install ansible || { echo "Failed to install Ansible with pipx"; exit 1; }; \
+		elif command -v pip3 >/dev/null 2>&1; then \
+			echo "Installing Ansible via pip3 --user..."; \
+			pip3 install --user ansible || { echo "Failed to install Ansible with pip3"; exit 1; }; \
+			echo "NOTE: You may need to add the user base bin dir to PATH (e.g., \
+				  $$($$(/usr/bin/env python3 -c 'import site,sys;sys.stdout.write(site.USER_BASE)') )/bin)."; \
+		else \
+			echo "ERROR: Could not find Homebrew, pipx, or pip3 to install Ansible."; \
+			echo "Please install Homebrew first: /bin/bash -c \"$$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""; \
+			exit 1; \
+		fi; \
+	fi; \
+	echo "Ensuring required Ansible collections are present..."; \
+	ansible-galaxy collection install community.general || true; \
+	echo "Running Ansible playbook to install Terraform & AWS CLI..."; \
+	cd ansible && ANSIBLE_CONFIG=ansible.cfg ansible-playbook tools.yml
+
+.PHONY: check-tools help tf-init tf-plan tf-apply tf-destroy check-terraform compose-up compose-down clean clean-check setup-tools
 
 
 #############
