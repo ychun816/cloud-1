@@ -79,10 +79,8 @@ check-tools:
 help:
 	@echo "MAKE COMMANDS | Available targets: "
 	@echo ""
-	@echo "  check-tools       Check local Terraform & AWS CLI installation"
-	@echo "  setup-tools      Install Terraform & AWS CLI locally via Ansible"
-# 	@echo "  check-env         Ensure Docker is installed and running with Terraform & AWS CLI installed"
-# 	@echo "  init-env          Build the local Docker image '$(IMAGE_NAME)'"
+	@echo "  check-tools       Check Ansible, Terraform & AWS CLI; auto-setup if missing"
+	@echo "  setup-tools       Install Ansible, then install Terraform & AWS CLI via Ansible"
 	@echo "  tf-init           Initialize Terraform"
 	@echo "  tf-plan           Run Terraform plan"
 	@echo "  tf-apply          Apply Terraform configuration"
@@ -121,10 +119,6 @@ tf-destroy:
 	@$(call ensure_docker_image)
 	@echo "Destroying Terraform-managed infrastructure..."
 	./init_env.sh destroy
-
-# Quick check: verify Terraform is available inside a container
-# - If the local `$(IMAGE_NAME)` image exists, check there.
-# - Otherwise use the official HashiCorp Terraform image so we don't need to build the local image.
 
 check-terraform:
 	@if [ -z "$$($(docker) images -q $(IMAGE_NAME) 2> /dev/null)" ]; then \
@@ -224,9 +218,19 @@ setup-tools:
 		fi; \
 	fi; \
 	echo "Ensuring required Ansible collections are present..."; \
-	ansible-galaxy collection install community.general || true; \
+	ag_bin=ansible-galaxy; \
+	if ! command -v $$ag_bin >/dev/null 2>&1; then \
+		user_bin_dir="$$($$(/usr/bin/env python3 -c 'import site,sys;sys.stdout.write(site.USER_BASE)'))/bin"; \
+		[ -x "$$user_bin_dir/ansible-galaxy" ] && ag_bin="$$user_bin_dir/ansible-galaxy"; \
+	fi; \
+	"$$ag_bin" collection install community.general || true; \
 	echo "Running Ansible playbook to install Terraform & AWS CLI..."; \
-	cd ansible && ANSIBLE_CONFIG=ansible.cfg ansible-playbook tools.yml
+	pb_bin=ansible-playbook; \
+	if ! command -v $$pb_bin >/dev/null 2>&1; then \
+		user_bin_dir="$$($$(/usr/bin/env python3 -c 'import site,sys;sys.stdout.write(site.USER_BASE)'))/bin"; \
+		[ -x "$$user_bin_dir/ansible-playbook" ] && pb_bin="$$user_bin_dir/ansible-playbook"; \
+	fi; \
+	ANSIBLE_CONFIG=$(CURDIR)/ansible/ansible.cfg "$$pb_bin" $(CURDIR)/ansible/tools.yml
 
 .PHONY: check-tools help tf-init tf-plan tf-apply tf-destroy check-terraform compose-up compose-down clean clean-check setup-tools
 

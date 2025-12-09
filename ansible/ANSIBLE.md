@@ -25,6 +25,158 @@ ansible/
 └── ANSIBLE.md
 ```
 
+-  ** `ansible.cfg` :**
+
+        - This file defines the **default behavior** of Ansible for the project.
+        - It is the *central configuration* file.
+        - It ensures **consistent behavior for all teammates**, without requiring long command-line flags.
+
+        - Typical settings include:
+
+        * default inventory path
+        * SSH settings
+        * privileges (become)
+        * roles search paths
+        * retry files
+        * callback plugins
+        * stdout formatting
+
+
+- ** `Inventories` :**
+Cleanly separate **environment configurations**.
+
+```
+inventories/
+├── local/
+│   └── hosts.ini
+├── dev/
+│   └── hosts.ini
+└── prod/
+    └── hosts.ini
+```
+
+
+        - Each folder = one environment: 
+
+| Folder   | Use case                                                      |
+| -------- | ------------------------------------------------------------- |
+| `local/` | Your laptop (installing terraform, docker, testing playbooks) |
+| `dev/`   | Development servers in cloud or on-prem                       |
+| `prod/`  | Production servers with strict control                        |
+> * prevents mixing dev/prod variables
+> * avoids accidental deployment to prod
+> * mirrors Terraform/Kubernetes environment separation
+> * simplifies CI/CD pipelines
+> * scales when environments grow
+
+- **How the environment is selected**
+
+You run:
+
+```bash
+ansible-playbook -i inventories/dev/hosts.ini playbooks/setup_tools.yml
+```
+
+> This points Ansible to the correct set of target machines.
+
+
+- **`group_vars` exists**
+This is the standard place to put **variables shared across multiple hosts or roles**.
+
+```
+group_vars/
+└── all.yml
+```
+
+        - Purpose: 
+
+        * avoid duplicating variables in playbooks
+        * keep configuration in a single location
+        * override settings per environment if needed
+        * provide defaults for all hosts
+
+### **`group_vars/all.yml` :**
+
+Automatically loaded for **every inventory** and **every playbook**.
+No need to import it manually.
+If you have dev/prod differences, create:
+```
+group_vars/dev.yml
+group_vars/prod.yml
+```
+> Ansible automatically selects the correct file based on your inventory’s group names.
+
+
+# **Purpose of `files/`**
+This folder stores **static files** that Ansible must copy to a target machine, without modification.
+
+        - Examples:
+
+        * certificates
+        * static config files
+        * binaries
+        * service files
+        * shell scripts
+
+        - Usage example:
+
+        ```yaml
+        - name: Copy service file
+        copy:
+        src: files/myservice.service
+        dest: /etc/systemd/system/myservice.service
+        ```
+
+        - When to use `files/` :
+        When you need to deliver a file *exactly as it is*.
+
+
+- **`templates/` :**
+
+This folder stores **Jinja2 template files**, which Ansible renders dynamically before copying.
+
+These files can contain variables:
+
+`docker-compose.yml.j2`:
+
+```yaml
+version: "3"
+services:
+  app:
+    image: "{{ docker_image }}"
+    ports:
+      - "{{ app_port }}:80"
+```
+
+Usage example:
+
+```yaml
+- name: Deploy docker compose from template
+  template:
+    src: templates/docker-compose.yml.j2
+    dest: /opt/app/docker-compose.yml
+```
+
+        - **Why templates are essential**
+
+        They allow environment-dependent generation of config files:
+        * dev gets dev configs
+        * prod gets hardened/secure configs
+        * one template deploys many variations
+
+
+| Directory        | Purpose                                            |
+| ---------------- | -------------------------------------------------- |
+| **ansible.cfg**  | Central configuration for Ansible behavior.        |
+| **inventories/** | Clean separation of local/dev/prod servers.        |
+| **group_vars/**  | Central shared variables; automatically loaded.    |
+| **files/**       | Static files copied exactly as stored.             |
+| **templates/**   | Jinja2 files rendered dynamically per environment. |
+
+
+---
+
+
 ## How to run
 
 - Install collections (recommended):
