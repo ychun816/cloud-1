@@ -1,0 +1,53 @@
+# targets localhost
+# macOS
+# installs Terraform, AWS CLI, Homebrew
+# uses your local machine as the “host”
+
+- name: Setup local tools on macOS
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  become: false
+  vars:
+    brew_prefix: "/opt/homebrew"
+  pre_tasks:
+    - name: Ensure Homebrew is installed
+      ansible.builtin.stat:
+        path: "{{ brew_prefix }}/bin/brew"
+      register: brew_bin
+
+    - name: Install Homebrew if missing (interactive)
+      ansible.builtin.shell: |
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      when: not brew_bin.stat.exists
+      changed_when: true
+
+  roles:
+    - role: terraform
+    - role: awscli
+
+  post_tasks:
+    - name: Show terraform version
+      ansible.builtin.command: terraform -version
+      register: tf_ver
+      changed_when: false
+      failed_when: false
+
+    - name: Show aws version
+      ansible.builtin.command: aws --version
+      register: aws_ver
+      changed_when: false
+      failed_when: false
+
+    - name: Print tool versions
+      ansible.builtin.debug:
+        msg:
+          - "Terraform: {{ tf_ver.stdout | default(tf_ver.stderr) | default('not found') }}"
+          - "AWS CLI: {{ aws_ver.stdout | default(aws_ver.stderr) | default('not found') }}"
+
+
+# NOTES 
+# connection
+# gather_facts
+# become
+# 

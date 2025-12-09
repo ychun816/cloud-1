@@ -5,6 +5,10 @@
     state: present
     update_homebrew: true
   when: ansible_facts['os_family'] == 'Darwin'
+  register: awscli_install
+  retries: 5
+  delay: 6
+  until: awscli_install is succeeded
 
 - name: Ensure aws on PATH
   ansible.builtin.shell: |
