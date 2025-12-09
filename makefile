@@ -31,49 +31,41 @@ define ensure_docker_image
 	fi
 endef
 
-# Default target: run check-env
-.DEFAULT_GOAL := check-env
+# Default target: run local tool checks
+.DEFAULT_GOAL := check-tools
 
 # Check environment: Docker present and running, and Terraform+AWS CLI available in tooling image (or official images)
-check-env:
-	@echo "Checking Docker availability..."
-	@if command -v docker >/dev/null 2>&1; then \
-		if docker info >/dev/null 2>&1; then \
-			echo "Docker daemon is running"; \
-			echo "== Current running containers =="; \
-			docker ps --format 'table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Names}}\n' || true; \
-		else \
-			echo "Docker CLI found but daemon is not running or not accessible (try 'systemctl start docker' or check permissions)"; exit 1; \
-		fi; \
+check-tools:
+	@echo "Checking local Terraform and AWS CLI installation..."
+	@echo "\n[Terraform]"
+	@if command -v terraform >/dev/null 2>&1; then \
+		terraform -version; \
 	else \
-		echo "Docker is not installed. Install Docker or run 'make build-env' if you have a script to install it."; exit 1; \
+		echo "Terraform not found on PATH."; \
+		echo "Install via Homebrew: 'brew tap hashicorp/tap && brew install hashicorp/tap/terraform'"; \
+		echo "Or download from https://developer.hashicorp.com/terraform/install"; \
+		exit 1; \
 	fi
-
-	@echo "Checking Terraform in tooling image or official image..."
-	@if [ -n "$$($(docker) images -q $(IMAGE_NAME) 2> /dev/null)" ]; then \
-		echo "Terraform version (from $(IMAGE_NAME)):"; \
-		docker run --rm $(IMAGE_NAME) terraform -version || (echo "ERROR: terraform not available in $(IMAGE_NAME)\n" && exit 1); \
+	@echo "\n[AWS CLI]"
+	@if command -v aws >/dev/null 2>&1; then \
+		aws --version; \
 	else \
-		echo "Terraform version (from official hashicorp/terraform image):"; \
-		docker run --rm hashicorp/terraform:latest terraform -version || (echo "ERROR: terraform not available in official image" && exit 1); \
-		echo ""; \
+		echo "AWS CLI not found on PATH."; \
+		echo "Install via Homebrew: 'brew install awscli'"; \
+		echo "Or download the macOS installer: https://awscli.amazonaws.com/AWSCLIV2.pkg"; \
+		exit 1; \
 	fi
-
-	@echo "Checking AWS CLI in tooling image or official image..."
-	@if [ -n "$$($(docker) images -q $(IMAGE_NAME) 2> /dev/null)" ]; then \
-		echo "AWS CLI version (from $(IMAGE_NAME)):"; \
-		docker run --rm $(IMAGE_NAME) --version || (echo "ERROR: aws CLI not available in $(IMAGE_NAME)" && exit 1); \
-	else \
-		echo "AWS CLI version (from official amazon/aws-cli image):"; \
-		docker run --rm amazon/aws-cli --version || (echo "ERROR: aws CLI not available in official image" && exit 1); \
-	fi
+	@echo "\n[Optional] Verifying AWS credentials (sts:get-caller-identity)"
+	@aws sts get-caller-identity 2>/dev/null || echo "Note: AWS credentials not configured or invalid. Run 'aws configure' if needed."
 
 # help | commands check
 help:
 	@echo "MAKE COMMANDS | Available targets: "
 	@echo ""
-	@echo "  check-env         Ensure Docker is installed and running with Terraform & AWS CLI installed"
-	@echo "  init-env          Build the local Docker image '$(IMAGE_NAME)'"
+	@echo "  check-tools       Check local Terraform & AWS CLI installation"
+	@echo "  setup-tools      Install Terraform & AWS CLI locally via Ansible"
+# 	@echo "  check-env         Ensure Docker is installed and running with Terraform & AWS CLI installed"
+# 	@echo "  init-env          Build the local Docker image '$(IMAGE_NAME)'"
 	@echo "  tf-init           Initialize Terraform"
 	@echo "  tf-plan           Run Terraform plan"
 	@echo "  tf-apply          Apply Terraform configuration"
@@ -85,9 +77,9 @@ help:
 	@echo ""
 
 # Explicit build target: run the project init script to build the image
-init-env:
-	@echo "Building local Docker image '$(IMAGE_NAME)'..."
-	@./init_env.sh
+# init-env:
+# 	@echo "Building local Docker image '$(IMAGE_NAME)'..."
+# 	@./init_env.sh
 
 # Terraform initialization
 tf-init:
@@ -188,6 +180,12 @@ clean-check:
 		echo "No local tooling image '$(IMAGE_NAME)' present."; \
 	fi
 	@echo "\nclean-check: OK\n"
+
+
+# Install local tools using Ansible (macOS)
+setup-tools:
+	@echo "Installing Terraform & AWS CLI locally via Ansible..."
+	@cd ansible && ANSIBLE_CONFIG=ansible.cfg ansible-playbook tools.yml
 
 
 #############
