@@ -1,0 +1,3 @@
+repo_url: "https://github.com/ychun816/cloud-1.git"
+app_dir: "/opt/cloud-1"
+compose_dir: "{{ app_dir }}/compose"

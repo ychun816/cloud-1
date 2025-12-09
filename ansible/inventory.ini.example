@@ -1,7 +1,0 @@
-[web]
-# replace with the instance public IP when ready
-# 1.2.3.4 ansible_user=ubuntu ansible_ssh_private_key_file=/home/youruser/.ssh/cloud1_id_ed25519 ansible_python_interpreter=/usr/bin/python3
-
-[local]
-# For testing with Multipass/Vagrant use the IP here
-# 10.0.0.5 ansible_user=ubuntu ansible_ssh_private_key_file=/home/youruser/.ssh/cloud1_id_ed25519 ansible_python_interpreter=/usr/bin/python3

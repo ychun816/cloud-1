@@ -1,0 +1,14 @@
+---
+- name: Install AWS CLI (Homebrew)
+  community.general.homebrew:
+    name: awscli
+    state: present
+    update_homebrew: true
+  when: ansible_facts['os_family'] == 'Darwin'
+
+- name: Ensure aws on PATH
+  ansible.builtin.shell: |
+    test -x "$(which aws)"
+  register: aws_path_check
+  changed_when: false
+  failed_when: false

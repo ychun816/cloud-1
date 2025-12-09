@@ -1,0 +1,14 @@
+---
+- name: Install Terraform (Homebrew tap)
+  community.general.homebrew:
+    name: hashicorp/tap/terraform
+    state: present
+    update_homebrew: true
+  when: ansible_facts['os_family'] == 'Darwin'
+
+- name: Ensure terraform on PATH
+  ansible.builtin.shell: |
+    test -x "$(which terraform)"
+  register: terraform_path_check
+  changed_when: false
+  failed_when: false
