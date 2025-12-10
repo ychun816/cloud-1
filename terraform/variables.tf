@@ -47,8 +47,8 @@ variable "environment" {
 }
 
 // Optional path to public key if Terraform should create a key pair
-// variable "public_key_path" {
-//   description = "Path to public key for Terraform to create a keypair (optional)"
-//   type        = string
-//   default     = "~/.ssh/id_ed25519.pub"
-// }
+variable "public_key_path" {
+  description = "Path to public key for Terraform to create a keypair (optional)"
+  type        = string
+  default     = "~/.ssh/id_ed25519.pub"
+}

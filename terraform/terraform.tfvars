@@ -13,7 +13,7 @@ environment = "dev"
 
 
 # set allowed SSH CIDR
-# allowed_ssh_cidr = "YOUR_IP/32"
+allowed_ssh_cidr = "78.242.104.196"
 
 # optional: set if using a named AWS CLI profile
 # aws_profile      = ""  

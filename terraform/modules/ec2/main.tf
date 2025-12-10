@@ -8,10 +8,16 @@ data "aws_ami" "ubuntu" {
   }
 }
 
+resource "aws_key_pair" "generated" {
+  count      = var.key_name == "" && var.public_key_path != "" ? 1 : 0
+  key_name   = "cloud1-key-${var.environment}"
+  public_key = file(var.public_key_path)
+}
+
 resource "aws_instance" "web" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = var.instance_type
-  key_name               = var.key_name
+  key_name               = var.key_name != "" ? var.key_name : aws_key_pair.generated[0].key_name
   vpc_security_group_ids = var.security_group_ids
 
   tags = {

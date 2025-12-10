@@ -13,9 +13,14 @@ instance_type  = "t3a.small"
 # If you already have an AWS KeyPair, set its name here so EC2 will use it.
 # Leave empty to use the optional `aws_key_pair` resource which uploads your public key.
 key_name       = "sophia_mac"
+# If you don't have an AWS KeyPair named above, set key_name = "" and provide a local public key path below to let Terraform create one for you.
+# public_key_path = "~/.ssh/id_ed25519.pub"
 
 # Temporary: allow SSH from anywhere (adjust to your IP/32 for better security)
-allowed_ssh_cidr = "0.0.0.0/0"
+#  SSH locked to my IP
+allowed_ssh_cidr = "78.242.104.196/32"
+# allowed_ssh_cidr = "0.0.0.0/0"
+
 
 # If creating a key via Terraform, set the local path to your public key (not committed to Git)
 # public_key_path = "/home/you/.ssh/cloud1_id_ed25519.pub"

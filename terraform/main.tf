@@ -18,6 +18,7 @@ module "webserver" {
 
   instance_type      = var.instance_type
   key_name           = var.key_name
+  public_key_path    = var.public_key_path
   environment        = var.environment
   security_group_ids = [module.network.web_sg_id]
 }
