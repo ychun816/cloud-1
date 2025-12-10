@@ -22,13 +22,13 @@
 output "webserver_public_ip" {
   description = "Public IP address of the web EC2 instance from the EC2 module"
   // Access the EC2 module output
-  value       = module.webserver.instance_public_ip
+  value       = module.webserver.public_ip
 }
 
 // Public DNS of the web EC2 instance
 output "webserver_public_dns" {
   description = "Public DNS name of the web EC2 instance from the EC2 module"
-  value       = module.webserver.instance_public_dns
+  value       = module.webserver.public_dns
 }
 
 // EC2 instance ID

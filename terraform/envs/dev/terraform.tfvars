@@ -2,17 +2,20 @@
 ## Each line sets a Terraform variable used by the root module.
 
 # AWS region where dev resources will be created
-aws_region     = "us-east-1"
+aws_region     = "eu-west-3"
 
 # (Optional) AWS CLI profile name from ~/.aws/credentials to use for auth
-aws_profile    = "default"
+aws_profile    = "cloud-1-dev"
 
 # EC2 instance type for dev (small/cost-effective)
 instance_type  = "t3a.small"
 
 # If you already have an AWS KeyPair, set its name here so EC2 will use it.
 # Leave empty to use the optional `aws_key_pair` resource which uploads your public key.
-key_name       = ""
+key_name       = "sophia_mac"
+
+# Temporary: allow SSH from anywhere (adjust to your IP/32 for better security)
+allowed_ssh_cidr = "0.0.0.0/0"
 
 # If creating a key via Terraform, set the local path to your public key (not committed to Git)
 # public_key_path = "/home/you/.ssh/cloud1_id_ed25519.pub"

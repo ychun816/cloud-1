@@ -1,12 +1,8 @@
 // ======================================================
 // Main Terraform configuration for EC2 instance
-// Root module: calls child modules
+// Root module: calls child modules -> ec2 & network
+// NOTE: Provider configuration defined in provider.tf.
 // ======================================================
-
-provider "aws" {
-  region  = var.aws_region
-  profile = var.aws_profile != "" ? var.aws_profile : null
-}
 
 // Module: network (security group)
 module "network" {

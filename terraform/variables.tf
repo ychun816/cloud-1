@@ -40,11 +40,11 @@ variable "allowed_ssh_cidr" {
 // OPTIONAL 
 // ======================================================
 // Optional environment label for tagging
-// variable "environment" {
-//   description = "Environment name (used for tagging, Environment label for tags)"
-//   type        = string
-//   default     = "dev"
-// }
+variable "environment" {
+  description = "Environment name used for tagging"
+  type        = string
+  default     = "dev"
+}
 
 // Optional path to public key if Terraform should create a key pair
 // variable "public_key_path" {
