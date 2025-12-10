@@ -1,3 +1,31 @@
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/terraform.tfstate.d/
+terraform/crash.log
+
+# Ignore local env var files (if any)
+*.env
+*.env.local
+
+# Ansible cache
+ansible/.retry
+
+# macOS
+.DS_Store
+
+# Node/Docker (if present later)
+node_modules/
+dist/
+.vite/
+.parcel-cache/
+.dockerignore
+docker/*.log
+
+# Python (if present later)
+__pycache__/
+*.pyc
 # Environment variables (contains sensitive passwords)
 .env
 
