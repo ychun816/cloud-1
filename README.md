@@ -23,6 +23,42 @@ Use this concise checklist to go from tools-installed to a verified Terraform pl
 6. Apply (optional)
   - `terraform apply -var-file envs/dev/terraform.tfvars`.
 
+## After Terraform apply (dev)
+
+Follow these steps to verify access and configure the server:
+
+1) SSH into the EC2 instance
+
+- Use the outputs printed by Terraform (example):
+  - Public IP: `15.237.127.174`
+  - Public DNS: `ec2-15-237-127-174.eu-west-3.compute.amazonaws.com`
+- Default user for Ubuntu AMI: `ubuntu`
+- Command:
+  - `ssh -i ~/.ssh/id_ed25519 ubuntu@<webserver_public_ip>`
+
+2) Save Terraform outputs (optional)
+
+- From the `terraform/` directory:
+  - `terraform output`
+  - `terraform output -json > tf_outputs.json`
+- You can parse this JSON to generate an Ansible inventory.
+
+3) Run Ansible to configure the server (Docker, Compose, app)
+
+- Create/update an inventory that points to the new EC2 public IP:
+  - `ansible/inventories/dev/hosts.ini` (example):
+    ```
+    [web]
+    15.237.127.174 ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_ed25519
+    ```
+- Run the playbook:
+  - `ansible-playbook -i ansible/inventories/dev/hosts.ini ansible/playbook.yml`
+
+Notes
+- If your public IP changes, update `allowed_ssh_cidr` in `terraform/envs/dev/terraform.tfvars` and re-apply.
+- If you don’t have an existing AWS key pair, leave `key_name = ""` and set `public_key_path` in `envs/dev/terraform.tfvars` to let Terraform create one.
+- For Free Tier, prefer `t3.micro` (region-dependent) or adjust instance type as needed.
+
 Optional local stack: `make compose-up`.
 
 ## porject brief 
