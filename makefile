@@ -51,6 +51,7 @@ help:
 	@echo "  compose-down      Stop docker-compose stack (compose/docker-compose.yml)"
 	@echo "  clean             Remove local Docker image and prune unused resources"
 	@echo "  clean-check       Check for running containers, dangling images, or local images"
+	@echo "  terraform-clean   Remove local Terraform artifacts (state, plans, cache)"
 	@echo ""
 
 
@@ -198,11 +199,14 @@ clean-check:
 	fi
 	@echo "\nclean-check: OK\n"
 
+# Remove Terraform-generated artifacts to avoid accidental commits and push failures
+terraform-clean:
+	@echo "Cleaning Terraform artifacts in terraform/ ..."
+	@sh -c 'cd terraform && rm -rf .terraform *.tfstate *.tfstate.backup *.tfplan *.plan crash.*.log || true'
+	@echo "Done. Consider re-running: terraform init"
 
-
-.PHONY: help check-tools setup-tools  compose-up compose-down clean clean-check 
-
-
+.PHONY: help check-tools setup-tools  compose-up compose-down clean clean-check terraform-clean
+# .PHONY: terraform-clean
 
 #############
 # Build the tooling image (context is the 'docker' directory)
