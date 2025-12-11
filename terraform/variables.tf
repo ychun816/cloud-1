@@ -30,6 +30,8 @@ variable "key_name" {
 }
 
 // Allowed CIDR for SSH access
+// allowed_ssh_cidr: control who can SSH into your EC2 instance
+// /32 means exactly that single IP address
 variable "allowed_ssh_cidr" {
   description = "CIDR block allowed to SSH into EC2"
   type        = string

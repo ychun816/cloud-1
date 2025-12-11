@@ -8,17 +8,18 @@ aws_region     = "eu-west-3"
 aws_profile    = "cloud-1-dev"
 
 # EC2 instance type for dev (small/cost-effective)
-instance_type  = "t3a.small"
+instance_type  = "t3.micro"
 
 # If you already have an AWS KeyPair, set its name here so EC2 will use it.
 # Leave empty to use the optional `aws_key_pair` resource which uploads your public key.
-key_name       = "sophia_mac"
+# Use existing AWS KeyPair name if present; else leave empty to let Terraform create one from your local public key
+key_name       = ""
 # If you don't have an AWS KeyPair named above, set key_name = "" and provide a local public key path below to let Terraform create one for you.
-# public_key_path = "~/.ssh/id_ed25519.pub"
+public_key_path = "~/.ssh/id_ed25519.pub"
 
 # Temporary: allow SSH from anywhere (adjust to your IP/32 for better security)
 #  SSH locked to my IP
-allowed_ssh_cidr = "78.242.104.196/32"
+allowed_ssh_cidr = "37.174.160.154/32"
 # allowed_ssh_cidr = "0.0.0.0/0"
 
 

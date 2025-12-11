@@ -84,3 +84,23 @@ GitHub Actions → terraform init/plan/apply → outputs → ansible-playbook
 - Restrict SSH ingress (`allowed_ssh_cidr`), and prefer `user_data` or Ansible to bootstrap.
 - Tag resources with `var.environment` for clarity.
 Once your infra grows, then evolve into module-based.
+
+# Other commands
+
+```bash
+# validate config (syntax/type checks)
+terraform validate
+
+# prepare for terrafrom apply with creating a plan file "dev.tfplan" (optional -> safer, reproducible)
+# dev.tfplan -> binary plan -> need terraform plan to read it 
+terraform plan <terraform.tfvars> -out=<dev.tfplan>
+
+# reprint the saved plan
+terraform show <dev.tfplan>
+
+# dry run without saving a file 
+terraform plan <terraform.tfvars>
+
+terraform apply -auto-approve "dev.tfplan"
+
+```
