@@ -898,9 +898,59 @@ docker compose -f compose/docker-compose.yml down
 docker compose -f compose/docker-compose.yml up -d
 # Confirm post + file persist in the site UI
 ```
+---
+
+## extra tools installed : 
+
+### git-filter-repo
+- A powerful tool for rewriting Git history.
+- Remove files or directories from all past commits
+- Rewrite commit messages
+- Delete large files from history to shrink repo size
+- Replace text or secrets across the entire commit history
+- Split or reorganize a repository
+> It is the modern replacement for git filter-branch and the BFG tool—faster, safer, and more flexible.
+### gitleaks
+A security scanning tool that searches your Git repositories for:
+- Hard-coded passwords
+- API keys
+- Tokens
+- Private keys
+- Other sensitive data
+
+> It scans commit history, branches, and even PRs to detect accidental secret exposure. > It’s often used in CI pipelines to prevent leaking credentials.
+
+### git-filter-repo — Common Commands
+
+
+| Task                                     | Command                                                        | Notes                                         |
+| ---------------------------------------- | -------------------------------------------------------------- | --------------------------------------------- |
+| Remove a file from entire history        | `git filter-repo --path filename --invert-paths`               | Deletes the file in all commits               |
+| Remove a folder from history             | `git filter-repo --path foldername --invert-paths`             | Useful for cleaning large or unwanted folders |
+| Replace text across all commits          | `git filter-repo --replace-text replacements.txt`              | `replacements.txt` defines text substitutions |
+| Remove large files by size               | `git filter-repo --strip-blobs-bigger-than 10M`                | Removes blobs larger than the given size      |
+| Rewrite author info                      | `git filter-repo --email-callback 'return new_email'`          | Used to fix author/committer emails           |
+| Keep only a specific subdirectory        | `git filter-repo --subdirectory-filter path/to/dir`            | Turns a folder into the root of the repo      |
+| Remove all history except last N commits | `git filter-repo --refs HEAD~N..HEAD`                          | Keeps only recent history                     |
+| Clean commit messages                    | `git filter-repo --message-callback '...python code...'`       | Fully customizable rewriting                  |
+| Rename a file historically               | `git filter-repo --path oldname --path-rename oldname:newname` | Rewrites past commits with new name           |
+
+### gitleaks — Common Commands
+| Task                                     | Command                                                     | Notes                                |
+| ---------------------------------------- | ----------------------------------------------------------- | ------------------------------------ |
+| Run a scan on current repo               | `gitleaks detect`                                           | Uses default configuration           |
+| Scan with verbose output                 | `gitleaks detect -v`                                        | Shows detailed findings              |
+| Provide a custom config file             | `gitleaks detect -c path/to/config.toml`                    | Allows custom rules                  |
+| Scan and output report to file           | `gitleaks detect -r report.json`                            | Exports results                      |
+| Scan a specific path                     | `gitleaks detect -s path/to/dir`                            | Useful outside Git repos             |
+| Scan a remote repository                 | `gitleaks detect --source=https://github.com/user/repo.git` | Clones and scans                     |
+| Run in CI mode (exit 1 if secrets found) | `gitleaks protect`                                          | Used to prevent commits with secrets |
+| Allowlist a file or pattern              | (in config TOML)                                            | Rules added via configuration        |
+| Redact secrets in output                 | `gitleaks detect --redact`                                  | Hides actual secret values           |
 
 
 
+---
 
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⣀⡀⣀⠀⠀⠀⠀⠀⢀⠀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡾⣢⠀⠀⠉⠀⠉⠉⡆⠀⠀⢀⡔⣧⠀⠀⠉⠀⠀⢷⠀⠀⠀⠀⠈⣆⣇⣠⠎⠀⠀⠀⠀⠀⠀⠀⠀⠀
