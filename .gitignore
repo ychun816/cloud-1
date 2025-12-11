@@ -4,6 +4,11 @@ terraform/*.tfstate
 terraform/*.tfstate.backup
 terraform/terraform.tfstate.d/
 terraform/crash.log
+# Terraform plans and logs (never commit)
+terraform/*.plan
+terraform/*.tfplan
+terraform/crash.*.log
+terraform/*.log
 
 # Ignore local env var files (if any)
 *.env
