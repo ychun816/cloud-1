@@ -14,18 +14,31 @@
 [V] Environment-specific tfvars structure (`dev`, `staging`, `prod`)
 [V] Ansible directory structure and inventory templates
 
-### Current -> Infrastructure Provisioning
-
-current: Ready to provision AWS infrastructure with Terraform.
-
-**Next continuing steps:**
+**TODO list**
 [V] recheck terrafrom structure (init/plan/apply)
 [V] Configure AWS credentials (SSH /access keys pair/SG_ID/instance)
-[ ] Run `terraform apply` to provision infrastructure
+[ ] Run `terraform apply` to provision infrastructure -> provisioning -> get instance running to get crendentials
 [ ] Update and save IP in `terraform/envs/dev/terraform.tfvars`
 [ ] Configure server with Ansible
-[ ] 
-[ ] 
+
+**Action Plan**
+1. [ ] **Provision (Terraform)**:
+   - `cd terraform/envs/dev`
+   - `terraform apply` (Review plan, type `yes`)
+   - Copy the value of `webserver_public_ip` from the outputs.
+
+2. [ ] **Connect (SSH)**:
+   - `ssh -i ~/.ssh/id_ed25519 ubuntu@<COPIED_IP>`
+   - (Verification only, then `exit`)
+
+3. [ ] **Configure (Ansible)**:
+   - Edit `ansible/inventories/dev/hosts.ini`:
+     - Add line: `<COPIED_IP> ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_ed25519` under `[web]`.
+   - Run: `ansible-playbook -i ansible/inventories/dev/hosts.ini ansible/playbook.yml`
+
+4. [ ] **Verify Application**:
+   - Open Browser: `https://<COPIED_IP>`
+   - Setup WordPress. 
 
 
 ### extra improvements
