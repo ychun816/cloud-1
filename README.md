@@ -17,9 +17,10 @@
 **TODO list**
 [V] recheck terrafrom structure (init/plan/apply)
 [V] Configure AWS credentials (SSH /access keys pair/SG_ID/instance)
-[ ] Run `terraform apply` to provision infrastructure -> provisioning -> get instance running to get crendentials
-[ ] Update and save IP in `terraform/envs/dev/terraform.tfvars`
+[V] Run `terraform apply` to provision infrastructure -> provisioning -> get instance running to get crendentials
+[V] Update and save IP in `ansible/inventories/dev/hosts.ini`
 [ ] Configure server with Ansible
+> Provisioning gave you the server; Ansible will give you the application
 
 **Action Plan**
 1. [ ] **Provision (Terraform)**:

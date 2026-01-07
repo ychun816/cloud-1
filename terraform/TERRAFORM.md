@@ -325,3 +325,6 @@ SG_ID=$(aws ec2 describe-security-groups \
 cd /Users/chun/Desktop/🇫🇷❹❷\ /cloud-1/terraform/envs/dev
 terraform apply
 ```
+---
+## Manage access keys for IAM users
+https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html#securing_access-keys
