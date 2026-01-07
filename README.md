@@ -4,7 +4,7 @@
 ## Index Table (to be added)
 ---
 
-## [updating] 1/6 Project Status & TODOs
+## [updating] Project Status & TODOs
 
 ### Completed
 [V] Git repository cleanup (removed large Terraform artifacts from history)
@@ -13,28 +13,29 @@
 [V] Terraform modules created (network, ec2)
 [V] Environment-specific tfvars structure (`dev`, `staging`, `prod`)
 [V] Ansible directory structure and inventory templates
-
-**TODO list**
+**1/6**
 [V] recheck terrafrom structure (init/plan/apply)
 [V] Configure AWS credentials (SSH /access keys pair/SG_ID/instance)
 [V] Run `terraform apply` to provision infrastructure -> provisioning -> get instance running to get crendentials
 [V] Update and save IP in `ansible/inventories/dev/hosts.ini`
+
+**TODO list**
+[ ] rerun terrafrom setup
 [ ] Configure server with Ansible
 > Provisioning gave you the server; Ansible will give you the application
 
 **Action Plan**
-1. [ ] **Provision (Terraform)**:
-   - `cd terraform/envs/dev`
-   - `terraform apply` (Review plan, type `yes`)
-   - Copy the value of `webserver_public_ip` from the outputs.
+1. [V] **Provision (Terraform)**:
+   - `make tf-deploy ENV=dev` 
+   - (Optional) `make tf-plan ENV=dev` before deploy
 
-2. [ ] **Connect (SSH)**:
-   - `ssh -i ~/.ssh/id_ed25519 ubuntu@<COPIED_IP>`
-   - (Verification only, then `exit`)
+2. [V] **Connect (SSH Check)**:
+   - `make check-ssh-env ENV=dev`
+   - Automatically updates Security Group with your current IP
+   - Verifies SSH connectivity
 
 3. [ ] **Configure (Ansible)**:
-   - Edit `ansible/inventories/dev/hosts.ini`:
-     - Add line: `<COPIED_IP> ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_ed25519` under `[web]`.
+   - Ensure `ansible/inventories/dev/hosts.ini` has the correct IP (from step 1 output).
    - Run: `ansible-playbook -i ansible/inventories/dev/hosts.ini ansible/playbook.yml`
 
 4. [ ] **Verify Application**:
