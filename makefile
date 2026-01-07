@@ -3,11 +3,11 @@
 # Makefile for Terraform + Docker project
 
 #################
-# COLOR SETTING 
+# COLOR SETTING
 
-BG_ORANGE='\033[48;5;216m'; 
-FG_BLACK_BOLD='\033[1;30m'; 
-RESET='\033[0m';
+BG_ORANGE := \033[48;5;216m
+FG_BLACK_BOLD := \033[1;30m
+RESET := \033[0m
 
 #################
 
@@ -45,13 +45,17 @@ endef
 help:
 	@echo "MAKE COMMANDS | Available targets: "
 	@echo ""
-	@echo "  check-tools       Check Ansible, Terraform & AWS CLI; auto-setup if missing"
-	@echo "  setup-tools       Install Ansible, then install Terraform & AWS CLI via Ansible"
-	@echo "  compose-up        Start docker-compose stack (compose/docker-compose.yml)"
-	@echo "  compose-down      Stop docker-compose stack (compose/docker-compose.yml)"
-	@echo "  clean             Remove local Docker image and prune unused resources"
-	@echo "  clean-check       Check for running containers, dangling images, or local images"
-	@echo "  terraform-clean   Remove local Terraform artifacts (state, plans, cache)"
+	@echo "  check-tools			Check Ansible, Terraform & AWS CLI; auto-setup if missing"
+	@echo "  setup-tools			Install Ansible, then install Terraform & AWS CLI via Ansible"
+	@echo "  compose-up			Start docker-compose stack (compose/docker-compose.yml)"
+	@echo "  compose-down			Stop docker-compose stack (compose/docker-compose.yml)"
+	@echo "  clean				Remove local Docker image and prune unused resources"
+	@echo "  clean-check			Check for running containers, dangling images, or local images"
+	@echo "  terraform-clean		Remove local Terraform artifacts (state, plans, cache)"
+	@echo "  terraform-clean-env ENV=dev|prod	Clean Terraform artifacts for a specific environment (need to specify ENV=dev or ENV=prod)"
+	@echo "  terraform-clean-all		Clean Terraform artifacts in both dev and prod"
+	@echo "  check-ssh-dev			Update dev SG to current IP, save outputs, test SSH (port 22 + login)"
+	@echo "  check-ssh-prod		Update prod SG to current IP, save outputs, test SSH (port 22 + login)"
 	@echo ""
 
 
@@ -205,7 +209,62 @@ terraform-clean:
 	@sh -c 'cd terraform && rm -rf .terraform *.tfstate *.tfstate.backup *.tfplan *.plan crash.*.log || true'
 	@echo "Done. Consider re-running: terraform init"
 
-.PHONY: help check-tools setup-tools  compose-up compose-down clean clean-check terraform-clean
+# Clean Terraform artifacts in a specific environment folder (requires ENV)
+terraform-clean-env:
+	@test -n "$(ENV)" || { echo "Usage: make terraform-clean-env ENV=dev|prod"; exit 1; }
+	@case "$(ENV)" in dev|prod) ;; *) echo "ERROR: ENV must be 'dev' or 'prod'"; exit 1;; esac
+	@echo "Cleaning Terraform artifacts in terraform/envs/$(ENV)/ ..."
+	@sh -c 'cd terraform/envs/$(ENV) && rm -rf .terraform terraform.tfstate terraform.tfstate.backup tf_outputs.json *.tfplan *.plan crash.*.log || true'
+	@echo "Done. Consider re-running: terraform init in terraform/envs/$(ENV)"
+
+# Clean Terraform artifacts in both dev and prod environment folders
+terraform-clean-all:
+	@for d in dev prod; do \
+		echo "Cleaning Terraform artifacts in terraform/envs/$$d/ ..."; \
+		sh -c 'cd terraform/envs/'"$$d"' && rm -rf .terraform terraform.tfstate terraform.tfstate.backup tf_outputs.json *.tfplan *.plan crash.*.log || true'; \
+	done; \
+	echo "Done. Consider re-running: terraform init per env"
+
+# SSH CHECK (use after terrafrom apply to check SSH works)
+# Verify SSH access to dev environment: update SG, save outputs, test port & login
+check-ssh-dev:
+	@echo "=== Verifying SSH access to dev environment ==="
+	@echo "[1/5] Fetching your current public IP..."
+	@NEW_CIDR="$$(curl -s https://checkip.amazonaws.com | tr -d '\n')/32"; \
+	echo "      Current IP: $$NEW_CIDR"; \
+	echo "[2/5] Updating dev security group to allow SSH from $$NEW_CIDR..."; \
+	cd terraform/envs/dev && terraform apply -auto-approve -var "allowed_ssh_cidr=$$NEW_CIDR" && \
+	echo "[3/5] Saving Terraform outputs to tf_outputs.json..." && \
+	terraform output -json | tee tf_outputs.json >/dev/null && \
+	echo "[4/5] Testing SSH port 22 reachability..." && \
+	IP="$$(terraform output -raw webserver_public_ip)" && \
+	echo "      Target IP: $$IP" && \
+	nc -zv "$$IP" 22 2>&1 | grep -i succeeded || { echo "ERROR: Port 22 not reachable"; exit 1; } && \
+	echo "[5/5] SSH login test..." && \
+	ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -i ~/.ssh/id_ed25519 "ubuntu@$$IP" \
+		"echo 'SSH_OK'; hostname; whoami; uptime" || { echo "ERROR: SSH login failed"; exit 1; } && \
+	printf "%b\n" "${BG_ORANGE}${FG_BLACK_BOLD}DEV environment SSH verified${RESET}"
+
+# Verify SSH access to prod environment: update SG, save outputs, test port & login
+check-ssh-prod:
+	@echo "=== Verifying SSH access to prod environment ==="
+	@echo "[1/5] Fetching your current public IP..."
+	@NEW_CIDR="$$(curl -s https://checkip.amazonaws.com | tr -d '\n')/32"; \
+	echo "      Current IP: $$NEW_CIDR"; \
+	echo "[2/5] Updating prod security group to allow SSH from $$NEW_CIDR..."; \
+	cd terraform/envs/prod && terraform apply -auto-approve -var "allowed_ssh_cidr=$$NEW_CIDR" && \
+	echo "[3/5] Saving Terraform outputs to tf_outputs.json..." && \
+	terraform output -json | tee tf_outputs.json >/dev/null && \
+	echo "[4/5] Testing SSH port 22 reachability..." && \
+	IP="$$(terraform output -raw webserver_public_ip)" && \
+	echo "      Target IP: $$IP" && \
+	nc -zv "$$IP" 22 2>&1 | grep -i succeeded || { echo "ERROR: Port 22 not reachable"; exit 1; } && \
+	echo "[5/5] SSH login test..." && \
+	ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -i ~/.ssh/id_ed25519 "ubuntu@$$IP" \
+		"echo 'SSH_OK'; hostname; whoami; uptime" || { echo "ERROR: SSH login failed"; exit 1; } && \
+	printf "%b\n" "${BG_ORANGE}${FG_BLACK_BOLD}PROD environment SSH verified${RESET}"
+
+.PHONY: help check-tools setup-tools  compose-up compose-down clean clean-check terraform-clean terraform-clean-env terraform-clean-all check-ssh-dev check-ssh-prod
 # .PHONY: terraform-clean
 
 #############

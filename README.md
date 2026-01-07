@@ -19,10 +19,14 @@
 current: Ready to provision AWS infrastructure with Terraform.
 
 **Next continuing steps:**
-[ ] 1. Configure AWS credentials (SSO or access keys)
-[ ] 2. Update your IP in `terraform/envs/dev/terraform.tfvars`
-[ ] 3. Run `terraform init`, `plan`, and `apply`
-[ ] 4. Configure server with Ansible
+[V] recheck terrafrom structure (init/plan/apply)
+[V] Configure AWS credentials (SSH /access keys pair/SG_ID/instance)
+[ ] Run `terraform apply` to provision infrastructure
+[ ] Update and save IP in `terraform/envs/dev/terraform.tfvars`
+[ ] Configure server with Ansible
+[ ] 
+[ ] 
+
 
 ### extra improvements
 [ ] Add remote Terraform state backend (S3 + DynamoDB)

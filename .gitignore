@@ -1,9 +1,16 @@
-# Terraform
+# Terraform (root and per-environment)
 terraform/.terraform/
 terraform/*.tfstate
 terraform/*.tfstate.backup
 terraform/terraform.tfstate.d/
 terraform/crash.log
+
+# Per-environment Terraform artifacts
+terraform/**/.terraform/
+terraform/**/terraform.tfstate
+terraform/**/terraform.tfstate.backup
+terraform/**/tf_outputs.json
+
 # Terraform plans and logs (never commit)
 terraform/*.plan
 terraform/*.tfplan
