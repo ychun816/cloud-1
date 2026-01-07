@@ -4,7 +4,37 @@
 ## Index Table (to be added)
 ---
 
-## TODO: AWS auth → Terraform plan
+## [updating] 1/6 Project Status & TODOs
+
+### Completed
+[V] Git repository cleanup (removed large Terraform artifacts from history)
+[V] `.gitignore` hardened (Terraform state, plans, logs, cache)
+[V] `make terraform-clean` target created
+[V] Terraform modules created (network, ec2)
+[V] Environment-specific tfvars structure (`dev`, `staging`, `prod`)
+[V] Ansible directory structure and inventory templates
+
+### Current -> Infrastructure Provisioning
+
+current: Ready to provision AWS infrastructure with Terraform.
+
+**Next continuing steps:**
+[ ] 1. Configure AWS credentials (SSO or access keys)
+[ ] 2. Update your IP in `terraform/envs/dev/terraform.tfvars`
+[ ] 3. Run `terraform init`, `plan`, and `apply`
+[ ] 4. Configure server with Ansible
+
+### extra improvements
+[ ] Add remote Terraform state backend (S3 + DynamoDB)
+[ ] Create helper script: `terraform output -json` → Ansible inventory
+[ ] Add TLS/HTTPS with Let's Encrypt
+[ ] Implement monitoring and logging
+[ ] Add CI/CD pipeline
+[ ] Complete staging and prod environment configs
+
+---
+
+## Quick Start: AWS auth → Terraform plan
 
 Use this concise checklist to go from tools-installed to a verified Terraform plan:
 
