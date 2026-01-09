@@ -19,16 +19,18 @@
 [V] Run `terraform apply` to provision infrastructure -> provisioning -> get instance running to get crendentials
 [V] Update and save IP in `ansible/inventories/dev/hosts.ini`
 **1/9**
-[V] Ansible: Main playbook `playbook.yml` implemented (Docker, UFW, Systemd, Repo clone)
-[V] Ansible: Local dev tools setup `tools.yml` implemented (Terraform, AWS CLI on macOS)
-[V] Ansible: Roles created (`docker`, `terraform`, `awscli`)
-[V] Ansible: Systemd service integration for auto-start/stop of Compose stack
-[V] Ansible: Dynamic inventory setup with correct IP
+**ansible**
+[V] Main playbook `playbook.yml` implemented (Docker, UFW, Systemd, Repo clone)
+[ ] Local dev tools setup `tools.yml` implemented (Terraform, AWS CLI on macOS)
+[ ] Roles created (`docker`, `terraform`, `awscli`)
+[ ] Systemd service integration for auto-start/stop of Compose stack
+[ ] Dynamic inventory setup with correct IP
 
 **TODO list**
-[V] rerun terrafrom setup
-[ ] Configure server with Ansible
-> Provisioning gave you the server; Ansible will give you the application
+[ ] rerun terrafrom setup
+[ ] Configure server with Ansible (In Progress)
+> Provisioning gave you the server; Ansible will give you the application.
+> *Current Block:* Ansible requires Python 3.9+, but Ubuntu 20.04 defaults to 3.8. Creating a bootstrap fix.
 
 **Action Plan**
 1. [V] **Provision (Terraform)**:
@@ -42,11 +44,12 @@
 
 3. [ ] **Configure (Ansible)**:
    - [V] Ensure `ansible/inventories/dev/hosts.ini` has the correct IP (from step 1 output).
+   - [ ] **Fix Python Version**: Verify `pre_tasks` in playbook to install Python 3.9 on target.
    - [ ] Run: `ansible-playbook -i ansible/inventories/dev/hosts.ini ansible/playbook.yml`
      > *Deploys: Docker Engine, UFW Security, Systemd Service, App Code*
 
 4. [ ] **Verify Application**:
-   - Open Browser: `https://<COPIED_IP>`
+   - Open Browser: `https://51.44.19.78`
    - Setup WordPress. 
 
 
