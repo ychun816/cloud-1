@@ -61,6 +61,51 @@ Notes
 
 Optional local stack: `make compose-up`.
 
+---
+
+## 📋 Infrastructure & Deployment Workflow
+
+This project follows a standard 3-step automation pipeline: **Provision → Configure → Deploy**.
+
+> NOTES: 
+> * **Terraform files (`.tf`)** are the blueprints for the *building* (walls, floor, address).
+> * **Ansible Playbooks (`.yml`)** are the blueprints for the *interior* (furniture, appliances, electricity, software).
+
+
+#### 1. Provisioning (Terraform)
+
+* **Action:** Run `terraform apply`
+* **Role:** The "Builder"
+* **What it does:** Creates the raw infrastructure (Virtual Machines/EC2 instances, VPCs, Security Groups).
+* **Result:** We have an "empty room" (a running server) with an IP address, but it has no software installed yet.
+
+#### 2. Configuration (Ansible)
+
+* **Action:** Run `ansible-playbook`
+* **Role:** The "Organizer"
+* **What it does:** Connects to the empty server created by Terraform. It follows the **Playbook** (instruction list) to install necessary facilities:
+* System updates & Security patches.
+* **Dependencies:** Installs the Docker Engine (the "shelves").
+
+
+* **Result:** The server is fully furnished and ready to run applications.
+
+#### 3. Application Deployment (Docker)
+
+* **Action:** Triggered by Ansible tasks
+* **Role:** The "Package"
+* **What it does:** Ansible instructs the Docker Engine to pull and start the specific Docker containers (the actual application code).
+* **Result:** The application is live and serving traffic.
+
+
+> **Terraform** gives us the computer.
+> **Ansible** prepares the computer and installs Docker.
+> **Docker** runs the actual application.
+
+--- 
+
+
+
 ## porject brief 
 Previous Inception project + automation + cloud infrastructure, 
 Extending the old Inception project by:
@@ -78,6 +123,7 @@ Extending the old Inception project by:
 | **Security**    | Local access only                            | Public access secured by firewall + HTTPS                |
 | **Objective**   | Learn containerization & orchestration       | Learn DevOps automation & infrastructure-as-code         |
 ---
+
 ## general setup
 * **Bash script:** Procedural environment setup (install Docker, build images, verify credentials).
 * **Makefile:** Project task automation (run Terraform commands inside Docker).
@@ -96,7 +142,6 @@ Extending the old Inception project by:
 | Install Terraform/AWS CLI **inside container** | Dockerfile                              |
 | Run Terraform commands                         | Makefile (calls script or `docker run`) |
 | Multi-container orchestration                  | docker-compose.yml                      |
-
 
 
 #### docker

@@ -56,70 +56,60 @@ In a real-world scenario, the order of operations is usually:
 
 ## anology
 
-| Tool (工具) | Your Concept Refined (您的概念優化) | Core Function (核心功能) | Analogy (比喻) |
+| Tool (工具) | Your Concept (您的概念) | Core Function (核心功能) | Analogy (比喻) |
 | --- | --- | --- | --- |
-| **1. Terraform** | **The Room Builder**<br>
+| **1. Terraform** | The Room Builder<br>
 
-<br>Creates the "separated rooms" (Servers/VPC), but they are cold and empty inside.<br>
+<br>(造房者)<br>
 
-<br>**造房者**<br>
+<br>Creates the "empty rooms".<br>
 
-<br>建造「隔間」(伺服器/網路)，但內部是空蕩蕩的毛胚屋。 | **Provisioning**<br>
+<br>建造出「空房間」。 | **Provisioning**<br>
 
-<br>(基礎設施供應) | **Construction Team**<br>
+<br>(基礎設施供應) | Construction Crew<br>
 
-<br>(建築工班) 🏗️ |
-| **2. Ansible** | **The Room Renovator**<br>
+<br>(建築工班) 🏗️<br>
 
-<br>Prepares the room. It installs the "shelves" (Docker Engine) so the room is ready to receive packages.<br>
+<br>負責把房子蓋好，接通水電，但裡面是空的 (Empty Room)。 |
+| **2. Ansible** | The Organizer<br>
 
-<br>**裝修師**<br>
+<br>(組織者)<br>
 
-<br>準備房間。它負責安裝「架子」(Docker 引擎)，讓房間有能力接收包裹。 | **Configuration**<br>
+<br>Installs "facilities" (dependencies) to make the room usable.<br>
 
-<br>(組態設定) | **Interior Designer**<br>
+<br>進入房間安裝「設施」(軟體依賴)，讓房間可以住人。 | **Configuration**<br>
 
-<br>(室內設計師) 🛠️ |
-| **3. Docker** | **The Gift Box**<br>
+<br>(組態設定) | Interior Designer / Contractor<br>
 
-<br>The functional app is packed inside this smallest unit. It contains everything needed to run.<br>
+<br>(室內設計師/裝修工頭) 🛠️<br>
 
-<br>**禮物盒**<br>
+<br>負責進場安裝瓦斯爐、馬桶，或是**Docker 引擎**。沒有他安裝這些「設施」，房間無法運作。 |
+| **3. Docker** | The Package<br>
 
-<br>功能性應用程式被封裝在這個最小單位內。打開就能用。 | **Packaging**<br>
+<br>(包裹)<br>
 
-<br>(封裝打包) | **IKEA Product Box**<br>
+<br>Packed into the right rooms.<br>
 
-<br>(宜家商品包裝) 📦 |
-| **4. Kubernetes** | **The Manager**<br>
+<br>被放入合適房間的「軟體包裹」。 | **Packaging**<br>
 
-<br>Watches over the "filled rooms." It decides which room gets which gift box and moves them if a room catches fire.<br>
+<br>(封裝打包) | Sealed Parcel<br>
 
-<br>**大廳經理**<br>
+<br>(密封包裹) 📦<br>
 
-<br>監管「已入住的房間」。它決定哪個盒子去哪個房間，如果房間失火，它會移動盒子。 | **Orchestration**<br>
+<br>裡面裝著應用程式。它需要 Ansible 先把「桌子」或「引擎」裝好，這個包裹才有地方放、才能被打開使用。 |
+| **4. Kubernetes** | The Manager<br>
 
-<br>(編排調度) | **Hotel Manager**<br>
+<br>(管理者)<br>
 
-<br>(飯店經理) ☸️ |
+<br>Decides which package goes to which room.<br>
+
+<br>決定哪個包裹要去哪個房間。 | **Orchestration**<br>
+
+<br>(編排調度) | Logistics Manager<br>
+
+<br>(物流中心經理) ☸️<br>
+
+<br>他不管房間怎麼蓋，也不管包裹裡裝什麼。他只負責看著大表，指揮：「把這 3 個包裹送到 101 號房！」 |
 
 ---
 
-### 🔄 The "Big Four" Sequence (四大工具的執行順序)
-
-To help you visualize the timeline, here is how they flow in a real project:
-
-1. **Terraform:** "I need 10 servers." (Creates empty Linux machines).
-* *Result:* 10 Empty Servers.
-
-
-2. **Ansible:** "I will log into those 10 servers and install Docker & Security updates."
-* *Result:* 10 **Ready-to-work** Servers.
-
-
-3. **Docker:** "I will package the Code into a Image."
-* *Result:* 1 **Portable App Image**.
-
-
-4. **Kubernetes:** "I will take that Image (from Step 3) and run it on those Servers (from Step 2)."
-* *Result:* A **Running Application**.

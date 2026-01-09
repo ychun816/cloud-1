@@ -92,20 +92,9 @@ services:
 volumes:
   # mariadb volume
   mariadb_data:
-    driver: local
-    driver_opts:
-      type: none
-      device: ${DATA_DIR}/mariadb_data
-      #device: /home/${USER}/data/mariadb (alternative way to write host path)
-      o: bind
   
   # wordpress volume
   wordpress_data:
-    driver: local
-    driver_opts:
-      type: none
-      device: ${DATA_DIR}/wordpress_data
-      o: bind
 
   # # redis volume
   # redis_data:
