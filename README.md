@@ -18,9 +18,15 @@
 [V] Configure AWS credentials (SSH /access keys pair/SG_ID/instance)
 [V] Run `terraform apply` to provision infrastructure -> provisioning -> get instance running to get crendentials
 [V] Update and save IP in `ansible/inventories/dev/hosts.ini`
+**1/9**
+[V] Ansible: Main playbook `playbook.yml` implemented (Docker, UFW, Systemd, Repo clone)
+[V] Ansible: Local dev tools setup `tools.yml` implemented (Terraform, AWS CLI on macOS)
+[V] Ansible: Roles created (`docker`, `terraform`, `awscli`)
+[V] Ansible: Systemd service integration for auto-start/stop of Compose stack
+[V] Ansible: Dynamic inventory setup with correct IP
 
 **TODO list**
-[ ] rerun terrafrom setup
+[V] rerun terrafrom setup
 [ ] Configure server with Ansible
 > Provisioning gave you the server; Ansible will give you the application
 
@@ -35,8 +41,9 @@
    - Verifies SSH connectivity
 
 3. [ ] **Configure (Ansible)**:
-   - Ensure `ansible/inventories/dev/hosts.ini` has the correct IP (from step 1 output).
-   - Run: `ansible-playbook -i ansible/inventories/dev/hosts.ini ansible/playbook.yml`
+   - [V] Ensure `ansible/inventories/dev/hosts.ini` has the correct IP (from step 1 output).
+   - [ ] Run: `ansible-playbook -i ansible/inventories/dev/hosts.ini ansible/playbook.yml`
+     > *Deploys: Docker Engine, UFW Security, Systemd Service, App Code*
 
 4. [ ] **Verify Application**:
    - Open Browser: `https://<COPIED_IP>`
