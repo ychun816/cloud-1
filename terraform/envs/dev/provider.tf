@@ -1,10 +1,6 @@
 // ======================================================
 // Terraform provider configuration
-// root module
-// terraform {} block declares provider versions and optional backend.
-// provider "aws" configures the runtime connection.
-// profile is optional, useful if you have multiple AWS CLI profiles.
-// In multi-module projects, only the root module contains the provider block. Child modules reference it automatically.
+// Dev environment
 // ======================================================
 
 terraform {
@@ -17,6 +13,8 @@ terraform {
     }
   }
 
+  // Modern approach: Use a remote backend (S3) or local state inside the env directory.
+  // For practice, we use local state inside this folder.
   backend "local" {
     path = "terraform.tfstate"
   }

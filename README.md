@@ -4,7 +4,56 @@
 ## Index Table (to be added)
 ---
 
-## TODO: AWS auth → Terraform plan
+## [updating] Project Status & TODOs
+
+### Completed
+[V] Git repository cleanup (removed large Terraform artifacts from history)
+[V] `.gitignore` hardened (Terraform state, plans, logs, cache)
+[V] `make terraform-clean` target created
+[V] Terraform modules created (network, ec2)
+[V] Environment-specific tfvars structure (`dev`, `staging`, `prod`)
+[V] Ansible directory structure and inventory templates
+**1/6**
+[V] recheck terrafrom structure (init/plan/apply)
+[V] Configure AWS credentials (SSH /access keys pair/SG_ID/instance)
+[V] Run `terraform apply` to provision infrastructure -> provisioning -> get instance running to get crendentials
+[V] Update and save IP in `ansible/inventories/dev/hosts.ini`
+
+**TODO list**
+[ ] rerun terrafrom setup
+[ ] Configure server with Ansible
+> Provisioning gave you the server; Ansible will give you the application
+
+**Action Plan**
+1. [V] **Provision (Terraform)**:
+   - `make tf-deploy ENV=dev` 
+   - (Optional) `make tf-plan ENV=dev` before deploy
+
+2. [V] **Connect (SSH Check)**:
+   - `make check-ssh-env ENV=dev`
+   - Automatically updates Security Group with your current IP
+   - Verifies SSH connectivity
+
+3. [ ] **Configure (Ansible)**:
+   - Ensure `ansible/inventories/dev/hosts.ini` has the correct IP (from step 1 output).
+   - Run: `ansible-playbook -i ansible/inventories/dev/hosts.ini ansible/playbook.yml`
+
+4. [ ] **Verify Application**:
+   - Open Browser: `https://<COPIED_IP>`
+   - Setup WordPress. 
+
+
+### extra improvements
+[ ] Add remote Terraform state backend (S3 + DynamoDB)
+[ ] Create helper script: `terraform output -json` → Ansible inventory
+[ ] Add TLS/HTTPS with Let's Encrypt
+[ ] Implement monitoring and logging
+[ ] Add CI/CD pipeline
+[ ] Complete staging and prod environment configs
+
+---
+
+## Quick Start: AWS auth → Terraform plan
 
 Use this concise checklist to go from tools-installed to a verified Terraform plan:
 

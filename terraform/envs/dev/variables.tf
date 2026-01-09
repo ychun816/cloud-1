@@ -1,56 +1,46 @@
 // ======================================================
 // Terraform input variables
+// Dev environment
 // ======================================================
 
-// AWS region to deploy into
 variable "aws_region" {
   description = "AWS region to deploy into"
   type        = string
   default     = "us-east-1"
 }
 
-// Optional AWS CLI profile
 variable "aws_profile" {
   description = "Optional AWS CLI profile name"
   type        = string
   default     = ""
 }
 
-// EC2 instance type (t3a.small for dev, t2.micro also works)
 variable "instance_type" {
   description = "EC2 instance type"
   type        = string
-  default     = "t3a.small"
+  default     = "t3.micro"
 }
 
-// Name of an existing AWS key pair
 variable "key_name" {
-  description = "sophia_mac"
+  description = "Name of an existing AWS key pair"
   type        = string
+  default     = ""
 }
 
-// Allowed CIDR for SSH access
-// allowed_ssh_cidr: control who can SSH into your EC2 instance
-// /32 means exactly that single IP address
 variable "allowed_ssh_cidr" {
   description = "CIDR block allowed to SSH into EC2"
   type        = string
-  default     = "YOUR_IP/32"
+  default     = "0.0.0.0/0"
 }
 
-// ======================================================
-// OPTIONAL 
-// ======================================================
-// Optional environment label for tagging
 variable "environment" {
   description = "Environment name used for tagging"
   type        = string
   default     = "dev"
 }
 
-// Optional path to public key if Terraform should create a key pair
 variable "public_key_path" {
-  description = "Path to public key for Terraform to create a keypair (optional)"
+  description = "Path to public key for Terraform to create a keypair"
   type        = string
   default     = "~/.ssh/id_ed25519.pub"
 }
