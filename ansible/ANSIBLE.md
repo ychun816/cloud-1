@@ -1,28 +1,34 @@
 # Ansible
 
-This folder follows a concise, environment-oriented layout that’s common practice.
-
-## Repository layout
-
-```text
-ansible/
-├── ansible.cfg
-├── inventories/
-│   ├── local/hosts.ini
-│   ├── dev/hosts.ini
-│   └── prod/hosts.ini
-├── playbooks/
-│   ├── setup_tools.yml      # installs Terraform & AWS CLI locally (macOS)
-│   └── docker_deploy.yml    # deploys the Docker Compose stack to hosts in [web]
-├── group_vars/
-│   └── all.yml              # global defaults (repo_url, app_dir, compose_dir)
-├── roles/
-│   ├── terraform/
-│   ├── awscli/
-│   └── docker/
-├── files/
-├── templates/
-└── ANSIBLE.md
+## repo structure
+```
+.
+├── ANSIBLE.md                  
+├── ansible.cfg                 # Global settings (overrides defaults, points to roles/inventory).
+├── group_vars                  # Folder for variables shared across groups of servers.
+│   └── all.yml                 # Variables that apply to EVERY server (e.g., global timezone).
+├── inventories                 # Your "Address Books" (lists of IP addresses), organized by env.
+│   ├── dev
+│   │   └── hosts.ini           # List of Development servers/IPs.
+│   ├── local
+│   │   └── hosts.ini           # Configuration to target local machine (localhost).
+│   └── prod
+│       └── hosts.ini           # List of Production servers/IPs (Be careful here!).
+├── playbook.yml                # The "Master Plan" playbook (likely runs everything).
+├── playbooks                   # Folder for smaller, specific-use playbooks.
+│   ├── docker_deploy.yml       # A specific play to deploy containers (not just install Docker).
+│   └── setup_tools.yml         # A specific play to install utility tools.
+├── roles                       # Reusable "Skills" (packages) you can teach a server.
+│   ├── awscli
+│   │   └── tasks
+│   │       └── main.yml        # The actual recipe steps to install AWS CLI.
+│   ├── docker
+│   │   └── tasks
+│   │       └── main.yml        # The actual recipe steps to install Docker Engine.
+│   └── terraform
+│       └── tasks
+│           └── main.yml        # The actual recipe steps to install Terraform.
+└── tools.yml                   # A root-level playbook specifically for running the tool roles.
 ```
 
 -  ** `ansible.cfg` :**

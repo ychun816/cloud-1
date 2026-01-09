@@ -900,10 +900,6 @@ ansible-playbook -i ansible/inventory_generated.ini ansible/playbook.yml
 ```
 
 
-
-
-
-
 ---
 ## test commands 
 ```bash
