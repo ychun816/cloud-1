@@ -73,7 +73,7 @@
       ansible.builtin.git:
         repo: "{{ repo_url }}"
         dest: "{{ app_dir }}"
-        version: main
+        version: master
         force: true
 
     - name: Allow SSH, HTTP, HTTPS in UFW
@@ -117,7 +117,7 @@
         mode: '0644'
         notify: daemon-reload
 
-    handlers:
+  handlers:
     - name: Daemon reload
       ansible.builtin.systemd:
         daemon_reload: true

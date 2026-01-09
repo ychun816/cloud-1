@@ -1,48 +1,49 @@
 ---
 # NOTE: This role is written for Ubuntu 20.04 LTS targets.
 
-- name: Ensure apt cache is up to date
-  ansible.builtin.apt:
-    update_cache: true
-    cache_valid_time: 3600
+# - name: Ensure apt cache is up to date
+#   ansible.builtin.apt:
+#     update_cache: true
+#     cache_valid_time: 3600
 
-- name: Install base packages
-  ansible.builtin.apt:
-    name:
-      - apt-transport-https
-      - ca-certificates
-      - curl
-      - gnupg
-      - lsb-release
-      - git
-    state: present
+# - name: Install base packages
+#   ansible.builtin.apt:
+#     name:
+#       - apt-transport-https
+#       - ca-certificates
+#       - curl
+#       - gnupg
+#       - lsb-release
+#       - git
+#     state: present
 
-- name: Add Docker GPG key
-  ansible.builtin.apt_key:
-    url: https://download.docker.com/linux/ubuntu/gpg
-    state: present
+# - name: Add Docker GPG key
+#   ansible.builtin.apt_key:
+#     url: https://download.docker.com/linux/ubuntu/gpg
+#     state: present
 
-- name: Add Docker apt repository
-  ansible.builtin.apt_repository:
-    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable"
-    state: present
+# - name: Add Docker apt repository
+#   ansible.builtin.apt_repository:
+#     repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable"
+#     state: present
 
-- name: Install Docker packages
-  ansible.builtin.apt:
-    name:
-      - docker-ce
-      - docker-ce-cli
-      - containerd.io
-      - docker-compose-plugin
-    state: present
-    update_cache: true
-  failed_when: false
+# - name: Install Docker packages
+#   ansible.builtin.apt:
+#     name:
+#       - docker-ce
+#       - docker-ce-cli
+#       - containerd.io
+#       - docker-compose-plugin
+#     state: present
+#     update_cache: true
+#   failed_when: false
 
-- name: Ensure docker service is started and enabled
-  ansible.builtin.service:
-    name: docker
-    state: started
-    enabled: true
+# - name: Ensure docker service is started and enabled
+#   ansible.builtin.service:
+#     name: docker
+#     state: started
+#     enabled: true
+#   ignore_errors: true
 
 - name: Create application directory
   ansible.builtin.file:
@@ -52,12 +53,18 @@
     group: root
     mode: '0755'
 
-- name: Clone repository (force update)
-  ansible.builtin.git:
-    repo: "{{ repo_url }}"
-    dest: "{{ app_dir }}"
-    version: "{{ repo_version | default('master') }}"
-    force: true
+# - name: Clone repository (force update)
+#   ansible.builtin.git:
+#     repo: "{{ repo_url }}"
+#     dest: "{{ app_dir }}"
+#     version: "{{ repo_version | default('master') }}"
+#     force: true
+
+- name: Copy project files (local dev)
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../compose"
+    dest: "{{ app_dir }}/"
+    mode: '0755'
 
 - name: Ensure compose directory exists
   ansible.builtin.file:
@@ -67,9 +74,52 @@
     group: root
     mode: '0755'
 
+- name: Create .env file for docker-compose
+  ansible.builtin.copy:
+    dest: "{{ compose_dir }}/.env"
+    content: |
+      DATA_DIR={{ app_dir }}/data
+      MYSQL_HOSTNAME=mariadb
+      MYSQL_DATABASE=wordpress
+      MYSQL_USER=user
+      MYSQL_PASSWORD=password
+      MYSQL_ROOT_PASSWORD=rootpassword
+      WP_URL=localhost
+      WP_TITLE=MySite
+      WP_ADMIN_USER=admin
+      WP_ADMIN_PASSWORD=adminpassword
+      WP_ADMIN_EMAIL=admin@example.com
+      WP_USER=editor
+      WP_USER_PASSWORD=editorpassword
+      WP_USER_EMAIL=editor@example.com
+
+- name: Create data directories
+  ansible.builtin.file:
+    path: "{{ app_dir }}/data/{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - wordpress_data
+    - mariadb_data
+
 - name: Start compose stack
-  ansible.builtin.command: docker compose -f {{ compose_dir }}/docker-compose.yml up -d
+  ansible.builtin.command: docker compose -f docker-compose.yml up -d --remove-orphans
   args:
     chdir: "{{ compose_dir }}"
+  environment:
+    DATA_DIR: "{{ app_dir }}/data"
+    MYSQL_HOSTNAME: mariadb
+    MYSQL_DATABASE: wordpress
+    MYSQL_USER: user
+    MYSQL_PASSWORD: password
+    MYSQL_ROOT_PASSWORD: rootpassword
+    WP_URL: localhost
+    WP_TITLE: MySite
+    WP_ADMIN_USER: admin
+    WP_ADMIN_PASSWORD: adminpassword
+    WP_ADMIN_EMAIL: admin@example.com
+    WP_USER: editor
+    WP_USER_PASSWORD: editorpassword
+    WP_USER_EMAIL: editor@example.com
   changed_when: false
 

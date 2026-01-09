@@ -211,3 +211,46 @@ ansible-playbook -i inventories/prod/hosts.ini playbooks/docker_deploy.yml
 - Keep roles focused and reusable. `docker` role handles host setup and compose; `terraform` and `awscli` roles handle local tooling.
 - For linting or CI, consider `ansible-lint` and a `collections/requirements.yml` to pin exact collection versions.
 
+---
+
+## ansible set-up
+
+* install ansible
+```bash
+sudo apt-get update && sudo apt-get install -y ansible
+```
+
+
+1. Verify Syntax
+```bash
+ansible-playbook -i inventories/local/hosts.ini playbook.yml --syntax-check
+```
+
+2. Run the Playbook (Dry Run)
+```bash
+export ANSIBLE_CONFIG=$(pwd)/ansible.cfg # 
+ansible-playbook -i inventories/local/hosts.ini playbook.yml --check
+```
+When run the command above, Ansible will:
+1. Bootstrap: Install system tools (curl, gnupg, ufw).
+2. Install Docker: Set up the official Docker repository and install the engine.
+3. Setup App: Clone cloud-1 repository to /opt/cloud-1.
+4. Systemd: Create a startup
+>  run this once per terminal session, run multiple times until it's right 
+
+* Analogy: 
+- Ansible: The Organizer.
+- Playbook: The To-Do List (Install Nginx, Start Docker).
+- ansible.cfg: The "Company Policy" or "Rulebook".
+
+> WHY need `export` first?
+> Ansible looks for its configuration file in a specific priority order : (1) ./ansible.cfg (Current Directory) -> (2) ~/.ansible.cfg (Home Directory) -> (3) /etc/ansible/ansible.cfg (Global System Default)
+> run `export` as "Safety Lock" even already in the home repo: 
+> 1. Protection against "Current Directory" confusion -> `export` ensures that no matter where you stand in the terminal, Ansible uses the correct file.
+> 2. Disabling Host Key Checking -> local development environments (like Vagrant or local VMs) change their "fingerprints" frequently. The local ansible.cfg prob has `host_key_checking = False`. If Ansible misses this file and uses the global default (which is True), the connection will fail immediately with an SSH error
+
+
+3. Run the Deployment (Manual Action Required)
+```bash
+ansible-playbook -i inventories/local/hosts.ini playbook.yml
+```
