@@ -26,11 +26,19 @@
 [ ] Systemd service integration for auto-start/stop of Compose stack
 [ ] Dynamic inventory setup with correct IP
 
+**1/12**
+**Ansible Fixes & Deployment**
+[V] Resolved Python 3.8/3.9 conflict on Ubuntu 20.04 (Bridge fix)
+[V] Fixed `pip` and `docker-compose` installation dependencies
+[V] Successful `ansible-playbook` run (failed=0)
+[V] Systemd service `cloud-1` created for auto-start
+[V] Security hardening applied (UFW, SSH)
+
 **TODO list**
-[ ] rerun terrafrom setup
-[ ] Configure server with Ansible (In Progress)
-> Provisioning gave you the server; Ansible will give you the application.
-> *Current Block:* Ansible requires Python 3.9+, but Ubuntu 20.04 defaults to 3.8. Creating a bootstrap fix.
+[ ] Verify WordPress setup in browser
+[ ] Configure TLS/HTTPS (Let's Encrypt)
+[ ] Add remote Terraform state backend (S3 + DynamoDB)
+[ ] Automate dynamic inventory (Terraform JSON -> Ansible)
 
 **Action Plan**
 1. [V] **Provision (Terraform)**:
@@ -42,14 +50,14 @@
    - Automatically updates Security Group with your current IP
    - Verifies SSH connectivity
 
-3. [ ] **Configure (Ansible)**:
+3. [V] **Configure (Ansible)**:
    - [V] Ensure `ansible/inventories/dev/hosts.ini` has the correct IP (from step 1 output).
-   - [ ] **Fix Python Version**: Verify `pre_tasks` in playbook to install Python 3.9 on target.
-   - [ ] Run: `ansible-playbook -i ansible/inventories/dev/hosts.ini ansible/playbook.yml`
+   - [V] **Fix Python Version**: Implemented bootstrap fix for Ubuntu 20.04.
+   - [V] Run: `ansible-playbook -i ansible/inventories/dev/hosts.ini ansible/playbook.yml`
      > *Deploys: Docker Engine, UFW Security, Systemd Service, App Code*
 
 4. [ ] **Verify Application**:
-   - Open Browser: `https://51.44.19.78`
+   - Open Browser: `http://51.44.255.51`
    - Setup WordPress. 
 
 

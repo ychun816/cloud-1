@@ -254,3 +254,12 @@ When run the command above, Ansible will:
 ```bash
 ansible-playbook -i inventories/local/hosts.ini playbook.yml
 ```
+
+--
+
+## notes during run anisible playbook 
+
+- `apt` installs packages for Ubuntu (Linux).
+- `brew` installs packages for macOS.
+- `npm` installs packages for JavaScript/Node.js.
+- `pip` installs packages (libraries) written in Python.

@@ -178,7 +178,7 @@ check-ssh-env:
 	@NEW_CIDR="$$(curl -s https://checkip.amazonaws.com | tr -d '\n')/32"; \
 	echo "      Current IP: $$NEW_CIDR"; \
 	echo "[2/5] Updating $(ENV) security group to allow SSH from $$NEW_CIDR..."; \
-	cd terraform/envs/$(ENV) && terraform apply -auto-approve -var "allowed_ssh_cidr=$$NEW_CIDR" && \
+	cd terraform/envs/$(ENV) && terraform init && terraform apply -auto-approve -var "allowed_ssh_cidr=$$NEW_CIDR" && \
 	echo "[3/5] Saving Terraform outputs to tf_outputs.json..." && \
 	terraform output -json | tee tf_outputs.json >/dev/null && \
 	echo "[4/5] Testing SSH port 22 reachability..." && \
