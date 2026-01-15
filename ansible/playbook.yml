@@ -100,6 +100,7 @@
           - docker-ce
           - docker-ce-cli
           - containerd.io
+          - docker-compose-plugin
         state: present
         update_cache: true
       failed_when: false
@@ -176,6 +177,12 @@
         mode: '0644'
       # notify must be at the task level (same indentation as name and ansible.builtin.copy
       notify: Daemon reload
+
+    - name: Enable and start cloud-1 service
+      ansible.builtin.service:
+        name: cloud-1
+        state: started
+        enabled: true
 
   handlers:
     - name: Daemon reload

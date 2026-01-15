@@ -30,7 +30,7 @@ COPY ./conf/www.conf /etc/php/7.4/fpm/pool.d/
 RUN mkdir /run/php
 
 # Copy custom WordPress setup script into container
-COPY ./tools/init_wordpress.sh /usr/local/bin/
+COPY conf/init_wordpress.sh /usr/local/bin/
 
 # Make the WordPress setup script executable
 RUN chmod +x /usr/local/bin/init_wordpress.sh

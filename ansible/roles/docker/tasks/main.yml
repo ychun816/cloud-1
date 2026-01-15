@@ -103,7 +103,7 @@
     - mariadb_data
 
 - name: Start compose stack
-  ansible.builtin.command: docker compose -f docker-compose.yml up -d --remove-orphans
+  ansible.builtin.command: docker compose -f docker-compose.yml up -d --build --remove-orphans
   args:
     chdir: "{{ compose_dir }}"
   environment:

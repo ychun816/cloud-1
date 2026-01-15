@@ -4,7 +4,9 @@ services:
   # NGINX Web Server Service
   nginx:
     container_name: nginx
-    image: nginx:stable-alpine
+    build:
+      context: ./conf/nginx
+      dockerfile: Dockerfile
     depends_on:
       - wordpress
     ports:
@@ -18,7 +20,9 @@ services:
   # MARIADB DATABASE
   mariadb:
     container_name: mariadb
-    image: mariadb:10.5
+    build:
+      context: ./conf/mariadb
+      dockerfile: Dockerfile
     environment:
       # Database connection for mariadb
       # variables used to configure the database connection
@@ -36,7 +40,9 @@ services:
   # WORDPRESS
   wordpress:
     container_name: wordpress
-    image: wordpress:6.0-php8.0-apache
+    build:
+      context: ./conf/wordpress
+      dockerfile: Dockerfile
     depends_on:
       - mariadb
     environment:

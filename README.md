@@ -34,6 +34,15 @@
 [V] Systemd service `cloud-1` created for auto-start
 [V] Security hardening applied (UFW, SSH)
 
+* notes
+after anisble set up , check server:
+- SSH into server to verify the containers are running: 
+```bash
+ssh ubuntu@51.44.255.51
+sudo docker ps
+exit #quit 
+```
+
 **TODO list**
 [ ] Verify WordPress setup in browser
 [ ] Configure TLS/HTTPS (Let's Encrypt)
