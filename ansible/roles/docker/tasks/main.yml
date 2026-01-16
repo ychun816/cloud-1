@@ -84,8 +84,8 @@
       MYSQL_USER=user
       MYSQL_PASSWORD=password
       MYSQL_ROOT_PASSWORD=rootpassword
-      WP_URL=localhost
-      WP_TITLE=MySite
+      WP_URL=https://35.180.118.164
+      WP_TITLE=Coucou C'est Chun's Blog!
       WP_ADMIN_USER=admin
       WP_ADMIN_PASSWORD=adminpassword
       WP_ADMIN_EMAIL=admin@example.com

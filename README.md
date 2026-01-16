@@ -45,7 +45,7 @@ exit #quit
 
 **TODO list**
 [ ] Verify WordPress setup in browser
-[ ] Configure TLS/HTTPS (Let's Encrypt)
+[ ] Configure TLS/HTTPS (Encrypt)
 [ ] Add remote Terraform state backend (S3 + DynamoDB)
 [ ] Automate dynamic inventory (Terraform JSON -> Ansible)
 
@@ -65,10 +65,38 @@ exit #quit
    - [V] Run: `ansible-playbook -i ansible/inventories/dev/hosts.ini ansible/playbook.yml`
      > *Deploys: Docker Engine, UFW Security, Systemd Service, App Code*
 
-4. [ ] **Verify Application**:
-   - Open Browser: `http://51.44.255.51`
-   - Setup WordPress. 
+4. [V] **Verify Application**:
+   - Open Browser: `https://35.180.118.164` (Accept the security warning)
+   - Setup WordPress 
+```bash
 
+# fetch a webpage from your server using HTTP (Port 80)
+# -v (verbose): Shows the complete "conversation" (handshake)
+curl -v  [address]
+
+# connect to server securely to run two specific checks, then immediately disconnect.
+ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no -o ConnectTimeout=5 ubuntu@51.44.255.51 "sudo docker ps && sudo ufw status"
+
+aws ec2 describe-instances --filters "Name=tag:Name,Values=cloud1-web-dev" "Name=instance-state-name,Values=running" --region eu-west-3 --query "Reservations[*].Instances[*].PublicIpAddress" --output text
+
+# Checks if your server is reachable via HTTPS (Port 443)
+# -k (insecure): Crucial
+# -I (Head): Fetches only the headers (server info, status code 200/404) without downloading the whole HTML page
+curl -k -I -v [address]
+```
+
+* modify wordpress
+```bash
+# tell Docker to run a command inside the container named wordpress
+sudo docker exec wordpress
+
+# WP-CLI command to change a database setting
+wp option update [option_name] [new_value]
+
+# Required because Docker runs as root, and WP-CLI normally blocks root for security (but it's fine inside a container)
+--allow-root
+
+```
 
 ### extra improvements
 [ ] Add remote Terraform state backend (S3 + DynamoDB)
