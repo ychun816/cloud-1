@@ -181,6 +181,8 @@ check-ssh-env:
 	cd terraform/envs/$(ENV) && terraform init && terraform apply -auto-approve -var "allowed_ssh_cidr=$$NEW_CIDR" && \
 	echo "[3/5] Saving Terraform outputs to tf_outputs.json..." && \
 	terraform output -json | tee tf_outputs.json >/dev/null && \
+	echo "[+   ] Updating Ansible Inventory..." && \
+	python3 ../../../ansible/scripts/generate_inventory.py --tf-output tf_outputs.json --inventory ../../../ansible/inventories/$(ENV)/hosts.ini && \
 	echo "[4/5] Testing SSH port 22 reachability..." && \
 	IP="$$(terraform output -raw webserver_public_ip)" && \
 	echo "      Target IP: $$IP" && \

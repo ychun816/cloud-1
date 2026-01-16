@@ -47,7 +47,7 @@ exit #quit
 [ ] Verify WordPress setup in browser
 [ ] Configure TLS/HTTPS (Encrypt)
 [ ] Add remote Terraform state backend (S3 + DynamoDB)
-[ ] Automate dynamic inventory (Terraform JSON -> Ansible)
+[IN PROGRESS] Automate dynamic inventory (Terraform JSON -> Ansible)
 
 **Action Plan**
 1. [V] **Provision (Terraform)**:
