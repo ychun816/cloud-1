@@ -1,6 +1,7 @@
 # Cloud 1 
 
 ---
+
 ## Index Table (to be added)
 ---
 
@@ -13,12 +14,11 @@
 [V] Terraform modules created (network, ec2)
 [V] Environment-specific tfvars structure (`dev`, `staging`, `prod`)
 [V] Ansible directory structure and inventory templates
-**1/6**
 [V] recheck terrafrom structure (init/plan/apply)
 [V] Configure AWS credentials (SSH /access keys pair/SG_ID/instance)
 [V] Run `terraform apply` to provision infrastructure -> provisioning -> get instance running to get crendentials
 [V] Update and save IP in `ansible/inventories/dev/hosts.ini`
-**1/9**
+
 **ansible**
 [V] Main playbook `playbook.yml` implemented (Docker, UFW, Systemd, Repo clone)
 [ ] Local dev tools setup `tools.yml` implemented (Terraform, AWS CLI on macOS)
@@ -26,7 +26,6 @@
 [ ] Systemd service integration for auto-start/stop of Compose stack
 [ ] Dynamic inventory setup with correct IP
 
-**1/12**
 **Ansible Fixes & Deployment**
 [V] Resolved Python 3.8/3.9 conflict on Ubuntu 20.04 (Bridge fix)
 [V] Fixed `pip` and `docker-compose` installation dependencies
@@ -43,11 +42,11 @@ sudo docker ps
 exit #quit 
 ```
 
-**TODO list**
-[ ] Verify WordPress setup in browser
-[ ] Configure TLS/HTTPS (Encrypt)
-[ ] Add remote Terraform state backend (S3 + DynamoDB)
-[IN PROGRESS] Automate dynamic inventory (Terraform JSON -> Ansible)
+**rerun terrafrom, Ansible, check docker setup for wordpress,ngnix,mariadb**
+[V] Verify WordPress setup in browser
+[V] Configure TLS/HTTPS (Encrypt)
+[V] Add remote Terraform state backend (S3 + DynamoDB)
+[V] Automate dynamic inventory (Terraform JSON -> Ansible)
 
 **Action Plan**
 1. [V] **Provision (Terraform)**:
@@ -98,12 +97,16 @@ wp option update [option_name] [new_value]
 
 ```
 
-### extra improvements
-[ ] Add remote Terraform state backend (S3 + DynamoDB)
-[ ] Create helper script: `terraform output -json` → Ansible inventory
-[ ] Add TLS/HTTPS with Let's Encrypt
-[ ] Implement monitoring and logging
+### 1/16 TODO : extras 
+[V] Automate dynamic inventory (Terraform JSON -> Ansible)
+[V] Add remote Terraform state backend (S3 + DynamoDB)
+[V] Add TLS/HTTPS (Self-Signed)
+```
+-> Traffic encrypted @ port 443
+-> Port 80 handled
+```
 [ ] Add CI/CD pipeline
+[ ] Implement monitoring and logging
 [ ] Complete staging and prod environment configs
 
 ---
@@ -351,42 +354,14 @@ cloud-1/
                    │                                                  │
                    │  Access: HTTPS via NGINX → Internet              │
                    └──────────────────────────────────────────────────┘
-```
-
-
-```bash
-                    ┌──────────────────────────────────────┐
-                    │   Local Dev Workflow                 │
-                    │──────────────────────────────────────│
-                    │  - Edit terraform/ & ansible/        │
-                    │  - Test compose/ locally (optional)  │
-                    │  - Push to Git repository            │
-                    └──────────────┬───────────────┬──────┘
-                                   │               │
-                                   │ terraform     │ ansible
-                                   ▼               ▼
-        ┌────────────────────────────────────────────────────┐
-        │        Remote Ubuntu 20.04 EC2 (Provisioned)       │
-        │────────────────────────────────────────────────────│
-        │  Ansible runs:                                     │
-        │   • Updates packages                                │
-        │   • Installs Docker & Compose                       │
-        │   • Renders compose templates (roles/webserver)     │
-        │   • Runs `docker compose up -d`                     │
-        │   • Configures firewall & TLS (HTTPS)               │
-        │────────────────────────────────────────────────────│
-        │  Services:                                          │
-        │   • NGINX (TLS)  • WordPress  • MariaDB  • phpMyAdmin│
-        └────────────────────────────────────────────────────┘
-                                   │
-                                   │ HTTPS
-                                   ▼
-                ┌────────────────────────────────┐
-                │     Your WordPress Website     │
-                │  - NGINX + TLS                 │
-                │  - Persistent volumes          │
-                │  - Deployable via automation   │
-                └────────────────────────────────┘
+                                          │
+                                          ▼
+                    ┌────────────────────────────────┐
+                    │     Your WordPress Website     │
+                    │  - NGINX + TLS                 │
+                    │  - Persistent volumes          │
+                    │  - Deployable via automation   │
+                    └────────────────────────────────┘
 ```
 
 ## Notes for newbs
@@ -788,7 +763,28 @@ modules/
  └── storage/
 ```
 
-### 🟩 “Lookup the latest Ubuntu 20.04 AMI from Canonical”
+### 🟩 Optional: `backend.tf` for remote state
+
+```hcl
+terraform {
+  backend "s3" {
+    bucket         = "your-terraform-state-bucket"
+    key            = "path/to/your/statefile.tfstate"
+    region         = "us-west-2"
+    dynamodb_table = "your-lock-table"
+  }
+}
+```
+
+#### 🧩 Why use remote state?
+
+* **Collaboration**: Multiple team members can work on the infrastructure simultaneously.
+* **Safety**: Protects against accidental deletions or overwrites.
+* **History**: Keeps a versioned history of your infrastructure changes.
+
+---
+
+### 🟩 1. “Lookup the latest Ubuntu 20.04 AMI from Canonical”
 
 ```hcl
 data "aws_ami" "ubuntu_focal" {
@@ -924,7 +920,7 @@ Then AWS uses it to let you SSH into the EC2 instance securely:
 
 So instead of manually adding your key in AWS Console, Terraform automates it.
 
-#### 🧠 When to use it:
+#### 🧩 When to use it:
 
 | Scenario                                            | Should you use `aws_key_pair`?            |
 | --------------------------------------------------- | ----------------------------------------- |
@@ -1132,32 +1128,3 @@ A security scanning tool that searches your Git repositories for:
 
 
 ---
-
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⣀⡀⣀⠀⠀⠀⠀⠀⢀⠀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡾⣢⠀⠀⠉⠀⠉⠉⡆⠀⠀⢀⡔⣧⠀⠀⠉⠀⠀⢷⠀⠀⠀⠀⠈⣆⣇⣠⠎⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠓⠒⠚⠦⠼⠤⠼⠋⠁⠀⠀⠈⠢⠤⠴⣄⣀⡶⠤⠞⠀⠀⠀⠉⠉⡽⣿⣿⠒⠒⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠞⠁⠀⣧⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠴⠒⠒⠦⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡏⠀⠀⠶⠀⢷⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⠇⠀⠀⠀⠀⡼⢀⣩⠗⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠄⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡼⠀⠀⠀⠀⠀⡗⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣄⡀⠀⠀⠀⠀⣀⣠⠇⠀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠄⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠹⡍⠉⠉⠉⠉⢁⡀⠀⣀⠀⠀⠀⠀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠓⡄⠀⠀⠀⠯⠤⠖⠁⠀⠀⢀⡞⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡴⠲⣄⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡠⠆⠈⠓⢄⣀⣀⣀⣀⣀⡤⠖⠋⠈⠒⢦⠀⠀⠀⠀⠀⢠⣆⠀⠀⠀⣇⠋⠙⡝⡲⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡜⠁⢠⡋⠀⣖⣀⣀⣀⣀⣀⣀⣈⡇⠐⡆⠀⡇⠀⠀⠀⠀⠸⡌⠓⡒⠚⠉⠀⢠⠟⠁⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠱⣄⡀⠉⠓⠦⠤⠄⠀⠀⠤⠤⠤⠤⠖⢁⡴⠃⠀⠀⠀⢀⠀⣳⣌⣓⠋⣁⡤⠋⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠑⠒⠒⠦⠤⠤⠤⠴⠒⠒⠒⠚⠉⠀⠀⠀⣠⠀⣇⠀⠧⣄⣈⣉⣁⡬⠗⣦⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠱⣄⠈⠉⠓⠒⠀⠀⠒⠒⠚⠁⢦⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠒⠒⠢⠤⠤⠤⠒⠋⠉⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀
-
-GIT COMMAND SHEET
-- https://education.github.com/git-cheat-sheet-education.pdf
-- https://git-scm.com/cheat-sheet
-- https://about.gitlab.com/images/press/git-cheat-sheet.pdf
-
-
