@@ -121,18 +121,18 @@ setup-tools:
 # TERRAFROM ###############################################################
 tf-plan:
 	@test -n "$(ENV)" || { echo "Usage: make plan ENV=dev|prod"; exit 1; }
-	@echo "Planning Terraform changes for $(ENV)..."
-	@cd terraform/envs/$(ENV) && terraform init && terraform plan
+	@echo "Planning Terraform changes for $(ENV) with profile $(AWS_PROFILE)..."
+	@cd terraform/envs/$(ENV) && export AWS_PROFILE=$(AWS_PROFILE) && terraform init && terraform plan
 
 tf-deploy:
 	@test -n "$(ENV)" || { echo "Usage: make deploy ENV=dev|prod"; exit 1; }
-	@echo "Deploying resources to $(ENV)..."
-	@cd terraform/envs/$(ENV) && terraform init && terraform apply
+	@echo "Deploying resources to $(ENV) with profile $(AWS_PROFILE)..."
+	@cd terraform/envs/$(ENV) && export AWS_PROFILE=$(AWS_PROFILE) && terraform init && terraform apply
 
 tf-destroy:
 	@test -n "$(ENV)" || { echo "Usage: make destroy ENV=dev|prod"; exit 1; }
-	@echo "Destroying resources in $(ENV)..."
-	@cd terraform/envs/$(ENV) && terraform destroy
+	@echo "Destroying resources in $(ENV) with profile $(AWS_PROFILE)..."
+	@cd terraform/envs/$(ENV) && export AWS_PROFILE=$(AWS_PROFILE) && terraform destroy
 
 # Clean Terraform artifacts in a specific environment folder (Safe: keeps state)
 tf-clean-cache:

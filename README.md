@@ -97,7 +97,7 @@ wp option update [option_name] [new_value]
 
 ```
 
-### 1/16 TODO : extras 
+### 1/16 TODO : Completed
 [V] Automate dynamic inventory (Terraform JSON -> Ansible)
 [V] Add remote Terraform state backend (S3 + DynamoDB)
 [V] Add TLS/HTTPS (Self-Signed)
@@ -105,8 +105,13 @@ wp option update [option_name] [new_value]
 -> Traffic encrypted @ port 443
 -> Port 80 handled
 ```
+
+### Next Session TODO (CloudWatch & CI/CD)
+[ ] **Implement Monitoring (AWS CloudWatch)**
+    -> [ ] Create IAM Role for EC2 (Terraform)
+    -> [ ] Install CloudWatch Agent (Ansible)
+    -> [ ] Verify Metrics in AWS Console
 [ ] Add CI/CD pipeline
-[ ] Implement monitoring and logging
 [ ] Complete staging and prod environment configs
 
 ---
