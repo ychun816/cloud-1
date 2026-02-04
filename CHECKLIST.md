@@ -1,6 +1,21 @@
 
 ## [updating] Project Status & TODOs
 
+
+✅ MET Requirements:
+1. Fully automated deployment - Ansible playbooks configured ✓
+2. Separate containers - nginx, mariadb, wordpress in docker-compose ✓
+3. Data persistence - Named volumes for mariadb_data and wordpress_data ✓
+4. Auto-restart on reboot - restart: unless-stopped in compose ✓
+5. Systemd integration - Ansible creates systemd service ✓
+6. Ubuntu 20.04 LTS support - Bootstrap Python fix implemented ✓
+7. Docker containers - docker-compose.yml present with 3 services ✓
+8. Network security - Internal network inception_network, database not exposed to internet ✓
+9. TLS/HTTPS - nginx configured with SSL certificates (port 443) ✓
+10. Database + WordPress + PHP - MariaDB, WordPress, nginx setup ✓
+
+
+
 ### Completed
 [V] Git repository cleanup (removed large Terraform artifacts from history)
 [V] `.gitignore` hardened (Terraform state, plans, logs, cache)
