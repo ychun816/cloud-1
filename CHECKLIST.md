@@ -17,6 +17,7 @@
 
 
 ### Completed
+
 [V] Git repository cleanup (removed large Terraform artifacts from history)
 [V] `.gitignore` hardened (Terraform state, plans, logs, cache)
 [V] `make terraform-clean` target created
@@ -44,7 +45,8 @@
 
 * notes
 after anisble set up , check server:
-- SSH into server to verify the containers are running: 
+- SSH into server to verify the containers are running:
+
 ```bash
 ssh ubuntu@51.44.255.51
 sudo docker ps
@@ -76,10 +78,9 @@ exit #quit
 4. [V] **Verify Application**:
    - Open Browser: `https://35.180.118.164` (Accept the security warning)
    - Setup WordPress 
-```bash
-
 
 ### 1/16 TODO : Completed
+
 [V] Automate dynamic inventory (Terraform JSON -> Ansible)
 [V] Add remote Terraform state backend (S3 + DynamoDB)
 [V] Add TLS/HTTPS (Self-Signed)
