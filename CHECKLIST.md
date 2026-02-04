@@ -105,6 +105,18 @@ exit #quit
 
 ---
 
+## Criteria:
+[x] HTTP (80) redirects to HTTPS (443)
+[x] HTTPS serves WordPress with TLS
+[x] WordPress accessible and working
+[x] Adminer accessible at /adminer/
+[x] All 4 containers running
+[ ] Data persists after restart
+[ ] Auto-starts after server reboot
+
+
+---
+
 > Only run Terraform when you verify or change infrastructure (Firewall rules, EC2 size, SSH key).
 
 > Only run Ansible when you change configuration files (Nginx config, scripts, Docker setup).
@@ -308,15 +320,6 @@ sudo docker ps | wc -l  # Should be 5 (4 containers + header)
 # 5. Database connection?
 sudo docker exec mariadb mysql -u wpuser -pSecureDbPass456! -e "SHOW DATABASES;"    
 ```
-
-SUCCESS Criteria:
-[x] HTTP (80) redirects to HTTPS (443)
-[ ] HTTPS serves WordPress with TLS
-[ ] WordPress accessible and working
-[ ] Adminer accessible at /adminer/
-[ ] All 4 containers running
-[ ] Data persists after restart
-[ ] Auto-starts after server reboot
 
 
 ## aws CLI commands
