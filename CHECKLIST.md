@@ -309,8 +309,8 @@ sudo docker ps | wc -l  # Should be 5 (4 containers + header)
 sudo docker exec mariadb mysql -u wpuser -pSecureDbPass456! -e "SHOW DATABASES;"    
 ```
 
-[ ] SUCCESS Criteria:
-[ ] HTTP (80) redirects to HTTPS (443)
+SUCCESS Criteria:
+[x] HTTP (80) redirects to HTTPS (443)
 [ ] HTTPS serves WordPress with TLS
 [ ] WordPress accessible and working
 [ ] Adminer accessible at /adminer/
