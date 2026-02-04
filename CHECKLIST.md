@@ -127,7 +127,7 @@ exit #quit
 
 🔧 STEP 0: Pre-Deployment Setup
 
-```
+```bash
 cd /home/yilin/GITHUB/cloud-1/compose
 cp ../.env.example .env
 nano .env  # Edit with your actual credentials
@@ -137,7 +137,7 @@ nano .env  # Edit with your actual credentials
 
 Option A: Full automated deployment (if Terraform + Ansible ready)
 
-```
+```bash
 cd /home/yilin/GITHUB/cloud-1
 make check-ssh-env ENV=dev
 
@@ -155,7 +155,8 @@ ansible-playbook -i ansible/inventories/dev/hosts.ini ansible/playbook.yml
 ```
 
 Option B: Manual deployment (if server already exists)
-```
+
+```bash
 # SSH into your server
 ssh ubuntu@[SERVER_IP] 
 ssh ubuntu@35.180.100.72
@@ -178,8 +179,6 @@ curl -k https://localhost | grep "wordpress"
 # Check if database is ready
 sudo docker exec mariadb mysql -u root -p[ROOT_PASSWORD] -e "SHOW DATABASES;"
 sudo docker exec mariadb mysql -u root -piwantstage -e "SHOW DATABASES;" # OR: -piwillfindstageapril
-
-
 
 
 # Exit and test from browser
@@ -210,7 +209,7 @@ sudo docker-compose up -d --build
 
 ✅ STEP 2: Verify Containers are Running
 
-```
+```bash
 # Check all 4 containers are up
 sudo docker ps
 
@@ -223,7 +222,7 @@ sudo docker ps
 
 🌐 STEP 3: Test HTTP → HTTPS Redirect
 
-```
+```bash
 # From your local machine (replace with YOUR_SERVER_IP)
 curl -v http://YOUR_SERVER_IP
 
@@ -245,18 +244,18 @@ curl -k -I https://YOUR_SERVER_IP
 
 📝 STEP 5: Test WordPress Setup
 
-```
+```bash
 https://YOUR_SERVER_IP
 ```
 
 Test login:
-```
+```bash
 https://YOUR_SERVER_IP/wp-admin
 ```
 
 🗄️ STEP 6: Test Adminer (Database Access)
 
-```
+```bash
 https://YOUR_SERVER_IP/adminer/
 ```
 Login with:
@@ -268,7 +267,7 @@ Login with:
 
 🔄 STEP 7: Test Auto-Restart (Data Persistence)
 
-```
+```bash
 # SSH into server
 ssh ubuntu@YOUR_SERVER_IP
 
@@ -287,7 +286,7 @@ https://YOUR_SERVER_IP
 ```
 
 🖥️ STEP 8: Test Server Reboot
-```
+```bash
 # SSH into server
 ssh ubuntu@YOUR_SERVER_IP
 
@@ -305,7 +304,7 @@ sudo docker ps
 ```
 
 📊 STEP 9: Complete Checklist
-```
+```bash
 # 1. HTTP redirect works?
 curl -I http://YOUR_SERVER_IP | grep "301"
 
@@ -325,7 +324,7 @@ sudo docker exec mariadb mysql -u wpuser -pSecureDbPass456! -e "SHOW DATABASES;"
 
 ## aws CLI commands
 
-```
+```bash
 aws sts get-caller-identity
 
 # configure as default
@@ -336,7 +335,7 @@ aws configure --profile cloud-1-dev
 
 ```
 
-```
+```bash
 cp = Copy locally (File A → File B)
 ssh = Login remotely
 scp = ssh + cp (Copy File A → Remote Computer File B)
