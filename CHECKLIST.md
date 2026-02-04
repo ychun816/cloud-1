@@ -91,9 +91,9 @@ exit #quit
 ### Mandatory Requirements Compliance Checklist
 [V] Add HTTP→HTTPS redirect in nginx (port 80 → 443)
 [V] Add Adminer database manage tools
-[ ] Verify `.env` file with all required variables
+[V] Verify `.env` file with all required variables
+[V] Confirm domain DNS setup for `yilin.42.fr` (Verified via hosts/redirects)
 [ ] Test multi-server parallel deployment scenario
-[ ] Confirm domain DNS setup for `yilin.42.fr`
 
 ### Next Session TODO (CloudWatch & CI/CD)
 [ ] **Implement Monitoring (AWS CloudWatch)**
@@ -164,7 +164,7 @@ curl -k https://localhost | grep "wordpress"
 
 # Check if database is ready
 sudo docker exec mariadb mysql -u root -p[ROOT_PASSWORD] -e "SHOW DATABASES;"
-sudo docker exec mariadb mysql -u root -piwillfindstageapril -e "SHOW DATABASES;"
+sudo docker exec mariadb mysql -u root -piwantstage -e "SHOW DATABASES;" # OR: -piwillfindstageapril
 
 
 
@@ -173,10 +173,6 @@ sudo docker exec mariadb mysql -u root -piwillfindstageapril -e "SHOW DATABASES;
 https://[SERVER_IP] #35.180.100.72 (Accept warning)
 http://[SERVER_IP] #35.180.100.72  (Should redirect to HTTPS)
 https://[SERVER_IP]/adminer/  # 35.180.100.72 (Should see Adminer login)
-
-https://35.180.100.72 (Accept warning)
-http://35.180.100.72  (Should redirect to HTTPS)
-https://5.180.100.72/adminer/   (Should see Adminer login)
 
 
 # if there's prob -> check if the server listen on port 80 and 443
