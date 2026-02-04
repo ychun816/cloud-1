@@ -74,24 +74,11 @@
     group: root
     mode: '0755'
 
-- name: Create .env file for docker-compose
+- name: Copy local .env file
   ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../compose/.env"
     dest: "{{ compose_dir }}/.env"
-    content: |
-      DATA_DIR={{ app_dir }}/data
-      MYSQL_HOSTNAME=mariadb
-      MYSQL_DATABASE=wordpress
-      MYSQL_USER=user
-      MYSQL_PASSWORD=password
-      MYSQL_ROOT_PASSWORD=rootpassword
-      WP_URL=https://35.180.118.164
-      WP_TITLE=Coucou C'est Chun's Blog!
-      WP_ADMIN_USER=admin
-      WP_ADMIN_PASSWORD=adminpassword
-      WP_ADMIN_EMAIL=admin@example.com
-      WP_USER=editor
-      WP_USER_PASSWORD=editorpassword
-      WP_USER_EMAIL=editor@example.com
+    mode: '0600'
 
 - name: Create data directories
   ansible.builtin.file:
@@ -108,18 +95,5 @@
     chdir: "{{ compose_dir }}"
   environment:
     DATA_DIR: "{{ app_dir }}/data"
-    MYSQL_HOSTNAME: mariadb
-    MYSQL_DATABASE: wordpress
-    MYSQL_USER: user
-    MYSQL_PASSWORD: password
-    MYSQL_ROOT_PASSWORD: rootpassword
-    WP_URL: localhost
-    WP_TITLE: MySite
-    WP_ADMIN_USER: admin
-    WP_ADMIN_PASSWORD: adminpassword
-    WP_ADMIN_EMAIL: admin@example.com
-    WP_USER: editor
-    WP_USER_PASSWORD: editorpassword
-    WP_USER_EMAIL: editor@example.com
   changed_when: false
 

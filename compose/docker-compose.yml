@@ -9,7 +9,9 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - wordpress
+      - adminer
     ports:
+      - 80:80
       - 443:443
     volumes:
       - wordpress_data:/var/www/html
@@ -80,19 +82,19 @@ services:
   #     - inception_network
   #   restart: unless-stopped
     
-  # # BONUS: adminer
-  # adminer:
-  #   container_name: adminer
-  #   build: 
-  #     context: ./bonus/adminer
-  #     dockerfile: Dockerfile
-  #   volumes:
-  #     - adminer_data:/var/www/html
-  #   depends_on:
-  #     - mariadb
-  #   networks:
-  #     - inception_network
-  #   restart: unless-stopped
+  # ADMINER: Database management interface
+  adminer:
+    container_name: adminer
+    build: 
+      context: ./conf/adminer
+      dockerfile: Dockerfile
+    volumes:
+      - adminer_data:/var/www/html
+    depends_on:
+      - mariadb
+    networks:
+      - inception_network
+    restart: unless-stopped
 
 # VOLUMES #Named volumes for data persistence
 volumes:
@@ -110,13 +112,8 @@ volumes:
   #     device: ${DATA_DIR}/redis_data
   #     o: bind
 
-  # # adminer volume  
-  # adminer_data:
-  #   driver: local
-  #   driver_opts:
-  #     type: none
-  #     device: ${DATA_DIR}/adminer_data
-  #     o: bind
+  # adminer volume  
+  adminer_data:
 
 # NETWORKS # Custom network for service communication
 networks:
