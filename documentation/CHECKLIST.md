@@ -32,9 +32,9 @@
 **ansible**
 [V] Main playbook `playbook.yml` implemented (Docker, UFW, Systemd, Repo clone)
 [V] Local dev tools setup `tools.yml` implemented (Terraform, AWS CLI on macOS)
-[V] Roles created (`docker`, `terraform`, `awscli`)
+[V] Roles created (`docker`, `terraform`, `awscli`, `cloudwatch`)
 [V] Systemd service integration for auto-start/stop of Compose stack
-[ ] Dynamic inventory setup with correct IP
+[V] Dynamic inventory setup with correct IP (generate_inventory.py)
 
 **Ansible Fixes & Deployment**
 [V] Resolved Python 3.8/3.9 conflict on Ubuntu 20.04 (Bridge fix)
@@ -42,6 +42,39 @@
 [V] Successful `ansible-playbook` run (failed=0)
 [V] Systemd service `cloud-1` created for auto-start
 [V] Security hardening applied (UFW, SSH)
+
+**New Features (Cloud & Monitoring)**
+[V] Parallel Deployment: Terraform supports `instance_count` and Ansible handles multiple IPs
+[V] Monitoring Infrastructure: Terraform creates IAM Role for CloudWatch
+[V] Monitoring Agent: Ansible installs and configures CloudWatch Agent (Memory/Disk metrics)
+[V] CI/CD Pipeline: GitHub Actions workflow (`deploy.yml`) created for automated deployment
+[V] Production Environment: Configured independently with cost-optimized settings (`t3.micro`)
+
+### feb6 (Verification)
+ These are the final steps to prove your project meets all requirements:
+
+1.  **Deployment Verification (CI/CD)**
+    *   [ ] Commit and push all changes to GitHub.
+    *   [ ] Go to the **Actions** tab in your GitHub repository.
+    *   [ ] Confirm the "Deploy to AWS" workflow runs successfully (green checkmark).
+
+2.  **Monitoring Verification (AWS CloudWatch)**
+    *   [ ] Log in to the AWS Console.
+    *   [ ] Go to **CloudWatch** -> **Metrics**.
+    *   [ ] Look for the **CWAgent** namespace.
+    *   [ ] Confirm `mem_used_percent` and `disk_used_percent` are visible.
+
+3.  **Application Verification**
+    *   [ ] Access the site via HTTPS (accept the self-signed certificate).
+    *   [ ] Create a WordPress post (with an image).
+    *   [ ] Reboot the server: `ssh ubuntu@<IP> 'sudo reboot'`
+    *   [ ] Wait 2 minutes.
+    *   [ ] Access the site again and verify the post is still there (Persistence & Auto-start).
+
+4.  **Multi-Server Proof**
+    *   [ ] Edit `terraform/envs/dev/terraform.tfvars` and set `instance_count = 2`.
+    *   [ ] Push to master.
+    *   [ ] Verify **two** servers are created and configured in AWS.
 
 * notes
 after anisble set up , check server:
