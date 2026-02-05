@@ -26,4 +26,7 @@ allowed_ssh_cidr = "37.174.160.154/32"
 # If creating a key via Terraform, set the local path to your public key (not committed to Git)
 # public_key_path = "/home/you/.ssh/cloud1_id_ed25519.pub"
 
+# How many instances to run (1 for standard dev, >1 for parallel deployment test)
+# instance_count = 2
+
 # Notes: dev uses a small instance and defaults suitable for low-cost testing.

@@ -57,6 +57,7 @@
     - variables.yml
   roles:
     - docker
+    - cloudwatch
 
 - name: Cloud-1 configuration continued
   hosts: all
