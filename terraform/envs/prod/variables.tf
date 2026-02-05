@@ -21,6 +21,12 @@ variable "instance_type" {
   default     = "t3.micro"
 }
 
+variable "instance_count" {
+  description = "Number of EC2 instances to deploy"
+  type        = number
+  default     = 2
+}
+
 variable "key_name" {
   description = "Name of an existing AWS key pair"
   type        = string

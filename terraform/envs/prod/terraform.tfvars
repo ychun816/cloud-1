@@ -8,7 +8,7 @@ aws_region     = "us-east-1"
 aws_profile    = ""
 
 # EC2 instance type for production (larger for real traffic)
-instance_type  = "t3a.large"
+instance_type  = "t3.micro"
 
 # Name of an existing AWS KeyPair to attach to the instance (strongly recommended for prod)
 key_name       = ""

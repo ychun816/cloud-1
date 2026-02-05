@@ -15,13 +15,15 @@ resource "aws_key_pair" "generated" {
 }
 
 resource "aws_instance" "web" {
+  count                  = var.instance_count
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = var.instance_type
   key_name               = var.key_name != "" ? var.key_name : aws_key_pair.generated[0].key_name
   vpc_security_group_ids = var.security_group_ids
+  iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
 
   tags = {
-    Name        = "cloud1-web-${var.environment}"
+    Name        = "cloud1-web-${var.environment}-${count.index + 1}"
     Environment = var.environment
   }
 }

@@ -3,6 +3,12 @@ variable "instance_type" {
   type        = string
 }
 
+variable "instance_count" {
+  description = "Number of EC2 instances to deploy"
+  type        = number
+  default     = 1
+}
+
 variable "key_name" {
   description = "Name of existing AWS key pair"
   type        = string
