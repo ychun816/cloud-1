@@ -53,10 +53,18 @@ jobs:
           ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N ""
           chmod 400 ~/.ssh/id_rsa
 
+      - name: Get Runner IP
+        id: ip
+        run: echo "ipv4=$(curl -s https://checkip.amazonaws.com)" >> $GITHUB_OUTPUT
+
       - name: Terraform Apply
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
-          terraform apply -auto-approve -no-color -var="public_key_path=$HOME/.ssh/id_rsa.pub" -var="aws_profile="
+          terraform apply -auto-approve -no-color \
+            -var="public_key_path=$HOME/.ssh/id_rsa.pub" \
+            -var="aws_profile=" \
+            -var="allowed_ssh_cidr=${{ steps.ip.outputs.ipv4 }}/32"
+          
           terraform output -no-color -json > tf_outputs.json
           echo "::group::Debug tf_outputs.json"
           cat tf_outputs.json
