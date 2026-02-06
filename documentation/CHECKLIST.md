@@ -57,9 +57,26 @@
     *   [ ] Commit and push all changes to GitHub.
     *   [ ] Go to the **Actions** tab in your GitHub repository.
     *   [ ] Confirm the "Deploy to AWS" workflow runs successfully (green checkmark).
+    *   [ ] **TODO Next:** Fix `.env` missing in CI/CD (add secrets).
 
+- check status in summary
 ```bash
 git status -sb
+```
+- Generate a stable key (Locally) for deployment key
+> if not specific keys, the workflow generates a random one every tim
+```bash
+ssh-keygen -t rsa -b 4096 -f deploy_key -N ""
+```
+- terminate aws instance ot let terrafrom run fresh instance
+```bash
+# CLI commands
+export AWS_PROFILE=cloud-1-dev
+aws ec2 terminate-instances --instance-ids [(#ur-instanceID)i-054711dbdbb95e108] --region [(#your-region)eu-west-3]
+```
+- allow gitpush when theres no new changes
+```
+git commit --allow-empty -m "...."
 ```
 
 2.  **Monitoring Verification (AWS CloudWatch)**
