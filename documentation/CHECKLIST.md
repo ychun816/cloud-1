@@ -58,6 +58,10 @@
     *   [ ] Go to the **Actions** tab in your GitHub repository.
     *   [ ] Confirm the "Deploy to AWS" workflow runs successfully (green checkmark).
 
+```bash
+git status -sb
+```
+
 2.  **Monitoring Verification (AWS CloudWatch)**
     *   [ ] Log in to the AWS Console.
     *   [ ] Go to **CloudWatch** -> **Metrics**.
