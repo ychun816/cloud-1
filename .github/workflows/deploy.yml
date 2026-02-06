@@ -80,6 +80,20 @@ jobs:
             --inventory ansible/inventories/dev/hosts.ini \
             --ssh-key ~/.ssh/id_rsa
 
+      - name: Wait for SSH to be ready
+        run: |
+          echo "Waiting for SSH to be available..."
+          # Fetch IP from inventory file (simple grep)
+          IP=$(grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' ansible/inventories/dev/hosts.ini | head -1)
+          
+          # Loop until netcat (nc) can connect to port 22
+          for i in {1..30}; do
+            nc -z -w 5 $IP 22 && echo "SSH is up!" && exit 0
+            echo "Waiting for SSH..."
+            sleep 10
+          done
+          echo "SSH failed to start in time."
+          exit 1
         
       - name: Run Ansible Playbook
         env:
