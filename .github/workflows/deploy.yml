@@ -55,7 +55,7 @@ jobs:
       - name: Terraform Apply
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: |
-          terraform apply -auto-approve -var="public_key_path=~/.ssh/id_rsa.pub"
+          terraform apply -auto-approve -var="public_key_path=~/.ssh/id_rsa.pub" -var="aws_profile="
           terraform output -json > tf_outputs.json
 
       - name: Generate Inventory
