@@ -32,6 +32,12 @@ def generate_inventory(tf_output_path, inventory_path, ssh_key_path):
         
     except Exception as e:
         print(f"Error generating inventory: {e}")
+        # Debug: Print the file content if JSON parsing fails
+        if os.path.exists(tf_output_path):
+            with open(tf_output_path, 'r') as f:
+                print(f"--- CONTENT OF {tf_output_path} ---")
+                print(f.read())
+                print("-------------------------------------")
         sys.exit(1)
 
 if __name__ == "__main__":
