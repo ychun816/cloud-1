@@ -63,8 +63,8 @@
   hosts: all
   become: true
   vars:
-    repo_url: "https://github.com/ychun816/cloud-1.git"
-    app_dir: /opt/cloud-1
+    # repo_url: "https://github.com/ychun816/cloud-1.git"
+    # app_dir: /opt/cloud-1  <-- Moved to variables.yml
 
   tasks:
     - name: Update apt cache
