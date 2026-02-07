@@ -207,13 +207,13 @@ check-containers:
 # CLEANERS ###############################################################
 # [NUKE] Destroy infrastructure AND delete local state (Project Reset)
 nuke:
-	@test -n "$(ENV)" || { echo "Usage: make tf-dist-clean ENV=dev|prod"; exit 1; }
-	@echo "!!! DANGER: This will DESTROY $(ENV) infrastructure and DELETE local state !!!"
+	@test -n "$(ENV)" || { echo "Usage: make nuke ENV=dev|prod"; exit 1; }
+	@echo "!!!" DANGER: This will DESTROY $(ENV) infrastructure and DELETE local state "!!!"
 	@read -p "Are you sure? [y/N] " ans && [ $${ans:-N} = y ]
 	@$(MAKE) tf-destroy ENV=$(ENV)
 	@echo "Destroy successful. Removing local state files..."
 	@sh -c 'cd terraform/envs/$(ENV) && rm -rf .terraform terraform.tfstate terraform.tfstate.backup tf_outputs.json'
 	@echo "Environment $(ENV) has been completely reset."
 
-.PHONY: help check-tools setup-tools clean tf-clean-safe tf-nuke-env tf-nuke-all check-ssh-env check-aws-env tf-plan tf-deploy tf-destroy tf-clean-check run-ansible check-containers
+.PHONY: help check-tools setup-tools tf-clean-cache nuke check-ssh-env check-aws-ec2 tf-plan tf-deploy tf-destroy tf-clean-check run-ansible check-containers
 
