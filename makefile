@@ -29,7 +29,8 @@ help:
 	@echo "  tf-plan ENV=...			Run Terraform Plan (Dry-run)"
 	@echo "  tf-deploy ENV=...		Run Terraform Apply (Provision)"
 	@echo "********* ANSIBLE ***********************"
-	@echo "  ansible ENV=...		Run Ansible playbook to configure servers"
+	@echo "  run-ansible ENV=...		Run Ansible playbook to configure servers"
+	@echo "  check-containers ENV=...	Check running Docker containers via Ansible"
 	@echo "  tf-destroy ENV=...		Run Terraform Destroy (Tear down)"
 	@echo "********* CLEANER ***************************"
 	@echo "  tf-clean-cache ENV=...		Remove only temp artifacts (plans, cache), keep state"
@@ -73,22 +74,10 @@ setup-tools:
 	@if command -v ansible >/dev/null 2>&1; then \
  		echo "Ansible already installed."; \
 	else \
-		if command -v brew >/dev/null 2>&1; then \
-			echo "Installing Ansible via Homebrew..."; \
-			brew update >/dev/null 2>&1 || true; \
-			brew install ansible || { echo "Failed to install Ansible with Homebrew"; exit 1; }; \
-		elif command -v pipx >/dev/null 2>&1; then \
-			echo "Installing Ansible via pipx..."; \
-			pipx install ansible || { echo "Failed to install Ansible with pipx"; exit 1; }; \
-		elif command -v pip3 >/dev/null 2>&1; then \
-			echo "Installing Ansible via pip3 --user..."; \
-			pip3 install --user ansible || { echo "Failed to install Ansible with pip3"; exit 1; }; \
-			echo "NOTE: You may need to add the user base bin dir to PATH (e.g., $$($$(/usr/bin/env python3 -c 'import site,sys;sys.stdout.write(site.USER_BASE)'))/bin)."; \
-		else \
-			echo "ERROR: Could not find Homebrew, pipx, or pip3 to install Ansible."; \
-			echo "Please install Homebrew first: /bin/bash -c \"$$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""; \
-			exit 1; \
-		fi; \
+		echo "ERROR: Ansible not found. Please install it manually:" \
+		echo "  Ubuntu/Debian: sudo apt install ansible" \
+		echo "  MacOS: brew install ansible" \
+		exit 1; \
 	fi; \
 # TERRAFORM & AWS CLI
 	@echo "\n[Step 2/3] Install Terraform & AWS CLI via Ansible"; \
@@ -166,8 +155,8 @@ check-aws-ec2:
 	@export AWS_PROFILE=cloud-1-$(ENV) && \
 	aws ec2 describe-instances \
 		--region eu-west-3 \
-		--filters "Name=tag:Name,Values=cloud1-web-$(ENV)" "Name=instance-state-name,Values=running" \
-		--query "Reservations[*].Instances[*].{ID:InstanceId,PublicIP:PublicIpAddress,State:State.Name}" \
+		--filters "Name=tag:Name,Values=cloud1-web-$(ENV)*" "Name=instance-state-name,Values=running" \
+		--query "Reservations[*].Instances[*].{ID:InstanceId,PublicIP:PublicIpAddress,State:State.Name,Name:Tags[?Key=='Name'].Value|[0]}" \
 		--output table
 
 # SSH CHECK (use after terraform apply to check SSH works)
@@ -196,11 +185,24 @@ check-ssh-env:
 
 
 # ANSIBLE ###############################################################
-ansible:
-	@test -n "$(ENV)" || { echo "Usage: make ansible ENV=dev|prod"; exit 1; }
+run-ansible:
+	@test -n "$(ENV)" || { echo "Usage: make run-ansible ENV=dev|prod"; exit 1; }
 	@case "$(ENV)" in dev|prod) ;; *) echo "ERROR: ENV must be 'dev' or 'prod'"; exit 1;; esac
 	@echo "Running Ansible Playbook for $(ENV)..."
 	@ansible-playbook -i ansible/inventories/$(ENV)/hosts.ini ansible/playbook.yml
+
+check-containers:
+	@test -n "$(ENV)" || { echo "Usage: make check-containers ENV=dev|prod"; exit 1; }
+	@if out=$$(ansible -i ansible/inventories/$(ENV)/hosts.ini web -m shell -a "if [ -z \"\$$(sudo docker ps -q)\" ]; then echo 'Containers all removed'; else sudo docker ps; fi" --become 2>&1); then \
+		echo "$$out"; \
+	else \
+		if echo "$$out" | grep -q "UNREACHABLE"; then \
+			echo "Containers all removed (Host unreachable or destroyed)"; \
+		else \
+			echo "$$out"; \
+			exit 1; \
+		fi; \
+	fi
 
 # CLEANERS ###############################################################
 # [NUKE] Destroy infrastructure AND delete local state (Project Reset)
@@ -213,5 +215,5 @@ nuke:
 	@sh -c 'cd terraform/envs/$(ENV) && rm -rf .terraform terraform.tfstate terraform.tfstate.backup tf_outputs.json'
 	@echo "Environment $(ENV) has been completely reset."
 
-.PHONY: help check-tools setup-tools clean tf-clean-safe tf-nuke-env tf-nuke-all check-ssh-env check-aws-env tf-plan tf-deploy tf-destroy tf-clean-check ansible
+.PHONY: help check-tools setup-tools clean tf-clean-safe tf-nuke-env tf-nuke-all check-ssh-env check-aws-env tf-plan tf-deploy tf-destroy tf-clean-check run-ansible check-containers
 

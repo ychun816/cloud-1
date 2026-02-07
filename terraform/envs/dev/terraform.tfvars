@@ -19,7 +19,7 @@ public_key_path = "/home/yilin/GITHUB/cloud-1/deploy_key.pub"
 
 # Temporary: allow SSH from anywhere (adjust to your IP/32 for better security)
 #  SSH locked to my IP
-allowed_ssh_cidr = "37.174.160.154/32"
+allowed_ssh_cidr = "62.210.32.54/32"
 # allowed_ssh_cidr = "0.0.0.0/0"
 
 
@@ -27,6 +27,7 @@ allowed_ssh_cidr = "37.174.160.154/32"
 # public_key_path = "/home/you/.ssh/cloud1_id_ed25519.pub"
 
 # How many instances to run (1 for standard dev, >1 for parallel deployment test)
-instance_count = 2
+instance_count = 1
+# instance_count = 2
 
 # Notes: dev uses a small instance and defaults suitable for low-cost testing.
