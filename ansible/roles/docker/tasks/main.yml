@@ -89,11 +89,12 @@
     - wordpress_data
     - mariadb_data
 
-- name: Start compose stack
-  ansible.builtin.command: docker compose -f docker-compose.yml up -d --build --remove-orphans
-  args:
-    chdir: "{{ compose_dir }}"
-  environment:
-    DATA_DIR: "{{ app_dir }}/data"
-  changed_when: false
+# - name: Start compose stack
+#   ansible.builtin.command: docker compose -f docker-compose.yml up -d --build --remove-orphans
+#   args:
+#     chdir: "{{ compose_dir }}"
+#   environment:
+#     DATA_DIR: "{{ app_dir }}/data"
+#   changed_when: false
+
 
