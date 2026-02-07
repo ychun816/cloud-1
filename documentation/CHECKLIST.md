@@ -104,7 +104,7 @@ tail -n 20 /opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log
 
 4.  **Multi-Server Proof**
     *   [x] Edit `terraform/envs/dev/terraform.tfvars` and set `instance_count = 2`.
-    *   [ ] Push to master.
+    *   [x] Push to master.
     *   [x] Verify **two** servers are created and configured in AWS.
 
 
@@ -161,15 +161,15 @@ exit #quit
 [V] Add Adminer database manage tools
 [V] Verify `.env` file with all required variables
 [V] Confirm domain DNS setup for `yilin.42.fr` (Verified via hosts/redirects)
-[ ] Test multi-server parallel deployment scenario
+[V] Test multi-server parallel deployment scenario
 
 ### Next Session TODO (CloudWatch & CI/CD)
-[ ] **Implement Monitoring (AWS CloudWatch)**
-    -> [ ] Create IAM Role for EC2 (Terraform)
-    -> [ ] Install CloudWatch Agent (Ansible)
-    -> [ ] Verify Metrics in AWS Console
-[ ] Add CI/CD pipeline
-[ ] Complete staging and prod environment configs
+[x] **Implement Monitoring (AWS CloudWatch)**
+    -> [x] Create IAM Role for EC2 (Terraform)
+    -> [x] Install CloudWatch Agent (Ansible)
+    -> [x] Verify Metrics in AWS Console
+[x] Add CI/CD pipeline
+[x] Complete staging and prod environment configs (Prod configured, Staging skipped)
 
 ---
 
@@ -179,8 +179,8 @@ exit #quit
 [x] WordPress accessible and working
 [x] Adminer accessible at /adminer/
 [x] All 4 containers running
-[ ] Data persists after restart
-[ ] Auto-starts after server reboot
+[x] Data persists after restart
+[x] Auto-starts after server reboot
 
 ---
 
@@ -405,6 +405,34 @@ curl -k -I https://51.44.220.17
 curl -k -I https://13.39.162.182
 ```
 
+### STEP 11: Verify .env Requirements
+
+```bash
+# Verify .env exists and has content (ssh into one instance)
+# Note: Ansible installs to /opt/cloud-1 by default
+ssh -i deploy_key ubuntu@51.44.220.17 "ls -l /opt/cloud-1/compose/.env"
+
+# Check for required keys (without revealing passwords) @cloud -1 
+ssh -i deploy_key ubuntu@51.44.220.17 "sudo grep -E 'DOMAIN_NAME|MYSQL_USER|MYSQL_DATABASE' /opt/cloud-1/compose/.env"
+
+```
+
+### STEP 12: DNS Verification
+
+```bash
+# Option A: Check Real DNS (if configured)
+dig +short yilin.42.fr
+
+# Option B: Verify Nginx Response to Domain (Simulate DNS)
+# This sends the domain name in the header directly to the IP
+curl -k -I -H "Host: yilin.42.fr" https://51.44.220.17
+
+# Verify it matches your Terraform output
+cd terraform/envs/dev && terraform output webserver_public_ips
+
+```
+
+---
 
 ## aws CLI commands
 

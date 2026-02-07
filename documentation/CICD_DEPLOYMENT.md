@@ -41,7 +41,7 @@ When you run `git push origin master`:
 
 Think of it like the difference between **a Chef** (GitHub Actions) and **a Recipe** (Bash/Python).
 
-| | Bash / Python Script (`verify_aws.sh` or `generate_inventory.py`) | GitHub Actions Workflow (`deploy.yml`) |
+| | Bash / Python Scripts | GitHub Actions Workflow (`deploy.yml`) |
 | :--- | :--- | :--- |
 | **What is it?** | A list of actual commands to execute. | A configuration file for a **Server**. |
 | **Who runs it?** | **You** (on your laptop) or a specific server. | **GitHub** (automatically). |
