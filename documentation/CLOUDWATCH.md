@@ -25,10 +25,10 @@ After deploying your project with `ansible-playbook`:
 2.  Navigate to **CloudWatch** service.
 3.  On the left menu, click **Metrics** -> **All metrics**.
 4.  Look for a custom namespace called **CWAgent** (this only appears if the agent is working).
-5.  Click **CWAgent** -> **ImageId, InstanceId, InstanceType**.
-6.  You should see your metrics:
-    *   `mem_used_percent` (Memory Usage)
-    *   `disk_used_percent` (Disk Usage)
+5.  Click **CWAgent**. You will see two categories:
+    *   **ImageId, InstanceId, InstanceType** -> Contains `mem_used_percent` (Memory).
+    *   **ImageId, InstanceId, InstanceType, device, fstype, path** -> Contains `disk_used_percent` (Disk storage).
+6.  Select a metric to view the graph.
 
 ## 4. Troubleshooting
 

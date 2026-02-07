@@ -15,7 +15,6 @@
 10. Database + WordPress + PHP - MariaDB, WordPress, nginx setup ✓
 
 
-
 ### Completed
 
 [V] Git repository cleanup (removed large Terraform artifacts from history)
@@ -50,13 +49,13 @@
 [V] CI/CD Pipeline: GitHub Actions workflow (`deploy.yml`) created for automated deployment
 [V] Production Environment: Configured independently with cost-optimized settings (`t3.micro`)
 
-### feb6 (Verification)
+### feb6-feb7 (Verification)
  These are the final steps to prove your project meets all requirements:
 
 1.  **Deployment Verification (CI/CD)**
-    *   [ ] Commit and push all changes to GitHub.
-    *   [ ] Go to the **Actions** tab in your GitHub repository.
-    *   [ ] Confirm the "Deploy to AWS" workflow runs successfully (green checkmark).
+    *   [V] Commit and push all changes to GitHub.
+    *   [V] Go to the **Actions** tab in your GitHub repository.
+    *   [V] Confirm the "Deploy to AWS" workflow runs successfully (green checkmark).
     *   [V] **TODO Next:** Fix `.env` missing in CI/CD (add secrets).
 
 - check status in summary
@@ -80,10 +79,23 @@ git commit --allow-empty -m "...."
 ```
 
 2.  **Monitoring Verification (AWS CloudWatch)**
-    *   [ ] Log in to the AWS Console.
-    *   [ ] Go to **CloudWatch** -> **Metrics**.
-    *   [ ] Look for the **CWAgent** namespace.
-    *   [ ] Confirm `mem_used_percent` and `disk_used_percent` are visible.
+    *   [V] Log in to the AWS Console.
+    *   [V] Go to **CloudWatch** -> **Metrics**.
+    *   [V] Look for the **CWAgent** namespace.
+    *   [V] Confirm `mem_used_percent` and `disk_used_percent` are visible.
+
+- restrat and ssh into container
+```bash
+ssh -v -i deploy_key ubuntu@51.44.17.77
+```
+- Check CloudWatch Agent Status
+- Check the logs are actually sending data with 
+```bash
+sudo systemctl status amazon-cloudwatch-agent
+tail -n 20 /opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log
+```
+
+
 
 3.  **Application Verification**
     *   [ ] Access the site via HTTPS (accept the self-signed certificate).
