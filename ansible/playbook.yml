@@ -62,6 +62,8 @@
 - name: Cloud-1 configuration continued
   hosts: all
   become: true
+  vars_files:
+    - variables.yml
   vars:
     # repo_url: "https://github.com/ychun816/cloud-1.git"
     # app_dir: /opt/cloud-1  <-- Moved to variables.yml

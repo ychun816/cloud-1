@@ -95,26 +95,27 @@ sudo systemctl status amazon-cloudwatch-agent
 tail -n 20 /opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log
 ```
 
-
-
 3.  **Application Verification**
-    *   [ ] Access the site via HTTPS (accept the self-signed certificate).
+    *   [x] Access the site via HTTPS (accept the self-signed certificate).
     *   [ ] Create a WordPress post (with an image).
-    *   [ ] Reboot the server: `ssh ubuntu@<IP> 'sudo reboot'`
-    *   [ ] Wait 2 minutes.
-    *   [ ] Access the site again and verify the post is still there (Persistence & Auto-start).
+    *   [x] Reboot the server: `ssh ubuntu@<IP> 'sudo reboot'`
+    *   [x] Wait 2 minutes.
+    *   [x] Access the site again and verify the post is still there (Persistence & Auto-start).
 
 4.  **Multi-Server Proof**
-    *   [ ] Edit `terraform/envs/dev/terraform.tfvars` and set `instance_count = 2`.
+    *   [x] Edit `terraform/envs/dev/terraform.tfvars` and set `instance_count = 2`.
     *   [ ] Push to master.
-    *   [ ] Verify **two** servers are created and configured in AWS.
+    *   [x] Verify **two** servers are created and configured in AWS.
+
+
+---
 
 * notes
 after anisble set up , check server:
 - SSH into server to verify the containers are running:
 
 ```bash
-ssh ubuntu@51.44.255.51
+ssh ubuntu@51.44.255.51 #ubuntu@51.44.17.77
 sudo docker ps
 exit #quit 
 ```
@@ -181,7 +182,6 @@ exit #quit
 [ ] Data persists after restart
 [ ] Auto-starts after server reboot
 
-
 ---
 
 > Only run Terraform when you verify or change infrastructure (Firewall rules, EC2 size, SSH key).
@@ -191,7 +191,7 @@ exit #quit
 ---
 ## tests commands
 
-🔧 STEP 0: Pre-Deployment Setup
+### STEP 0: Pre-Deployment Setup
 
 ```bash
 cd /home/yilin/GITHUB/cloud-1/compose
@@ -199,7 +199,7 @@ cp ../.env.example .env
 nano .env  # Edit with your actual credentials
 ```
 
-📦 STEP 1: Deploy to Your Server
+### STEP 1: Deploy to Your Server
 
 Option A: Full automated deployment (if Terraform + Ansible ready)
 
@@ -273,7 +273,7 @@ cd /home/ubuntu/cloud-1/compose
 sudo docker-compose up -d --build
 ```
 
-✅ STEP 2: Verify Containers are Running
+### STEP 2: Verify Containers are Running
 
 ```bash
 # Check all 4 containers are up
@@ -286,7 +286,7 @@ sudo docker ps
 # - adminer
 ```
 
-🌐 STEP 3: Test HTTP → HTTPS Redirect
+### STEP 3: Test HTTP → HTTPS Redirect
 
 ```bash
 # From your local machine (replace with YOUR_SERVER_IP)
@@ -297,7 +297,7 @@ curl -v http://YOUR_SERVER_IP
 # Location: https://yilin.42.fr/
 ```
 
-🔒 STEP 4: Test HTTPS Access
+### STEP 4: Test HTTPS Access
 
 ```bash
 # Test HTTPS (ignore self-signed cert warning)
@@ -308,7 +308,7 @@ curl -k -I https://YOUR_SERVER_IP
 # server: nginx
 ```
 
-📝 STEP 5: Test WordPress Setup
+### STEP 5: Test WordPress Setup
 
 ```bash
 https://YOUR_SERVER_IP
@@ -319,7 +319,7 @@ Test login:
 https://YOUR_SERVER_IP/wp-admin
 ```
 
-🗄️ STEP 6: Test Adminer (Database Access)
+### STEP 6: Test Adminer (Database Access)
 
 ```bash
 https://YOUR_SERVER_IP/adminer/
@@ -331,7 +331,7 @@ Login with:
 - Password: SecureDbPass456! (from .env MYSQL_PASSWORD)
 - Database: wordpress
 
-🔄 STEP 7: Test Auto-Restart (Data Persistence)
+### STEP 7: Test Auto-Restart (Data Persistence)
 
 ```bash
 # SSH into server
@@ -351,7 +351,7 @@ sudo docker ps
 https://YOUR_SERVER_IP
 ```
 
-🖥️ STEP 8: Test Server Reboot
+### STEP 8: Test Server Reboot
 ```bash
 # SSH into server
 ssh ubuntu@YOUR_SERVER_IP
@@ -369,7 +369,7 @@ sudo systemctl status cloud-1
 sudo docker ps
 ```
 
-📊 STEP 9: Complete Checklist
+### STEP 9: Complete Checklist
 ```bash
 # 1. HTTP redirect works?
 curl -I http://YOUR_SERVER_IP | grep "301"
@@ -385,6 +385,24 @@ sudo docker ps | wc -l  # Should be 5 (4 containers + header)
 
 # 5. Database connection?
 sudo docker exec mariadb mysql -u wpuser -pSecureDbPass456! -e "SHOW DATABASES;"    
+```
+
+### STEP 10: Multi-Server Verification (Scaling)
+
+```bash
+# 1. Verify 2 IPs in Terraform Output
+cd terraform/envs/dev && terraform output webserver_public_ips
+
+# 2. Verify Ansible Inventory
+cat ../../../ansible/inventories/dev/hosts.ini
+
+# 3. Check Docker status on BOTH servers simultaneously
+cd ../../..
+ansible -i ansible/inventories/dev/hosts.ini web -m shell -a "sudo docker ps" --become
+
+# 4. CURL both endpoints (Replace with your specific IPs)
+curl -k -I https://51.44.220.17
+curl -k -I https://13.39.162.182
 ```
 
 

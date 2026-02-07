@@ -182,13 +182,13 @@ check-ssh-env:
 	echo "[3/5] Saving Terraform outputs to tf_outputs.json..." && \
 	terraform output -json | tee tf_outputs.json >/dev/null && \
 	echo "[+   ] Updating Ansible Inventory..." && \
-	python3 ../../../ansible/scripts/generate_inventory.py --tf-output tf_outputs.json --inventory ../../../ansible/inventories/$(ENV)/hosts.ini && \
+	python3 ../../../ansible/scripts/generate_inventory.py --tf-output tf_outputs.json --inventory ../../../ansible/inventories/$(ENV)/hosts.ini --ssh-key "$(CURDIR)/deploy_key" && \
 	echo "[4/5] Testing SSH port 22 reachability..." && \
-	IP="$$(terraform output -raw webserver_public_ip)" && \
+	IP=$$(grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' tf_outputs.json | head -n 1) && \
 	echo "      Target IP: $$IP" && \
 	nc -zv "$$IP" 22 2>&1 | grep -i succeeded || { echo "ERROR: Port 22 not reachable"; exit 1; } && \
 	echo "[5/5] SSH login test..." && \
-	ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -i ~/.ssh/id_ed25519 "ubuntu@$$IP" \
+	ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -i ../../../deploy_key "ubuntu@$$IP" \
 		"echo 'SSH_OK'; hostname; whoami; uptime" || { echo "ERROR: SSH login failed"; exit 1; } && \
 	printf "%b\n" "${BG_ORANGE}${FG_BLACK_BOLD}$(ENV) environment SSH verified${RESET}"
 
