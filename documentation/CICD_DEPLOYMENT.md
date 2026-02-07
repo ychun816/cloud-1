@@ -59,6 +59,14 @@ While you *technically* can run scripts manually for a school project, in the pr
 
 By including `deploy.yml`, you are demonstrating that you understand how modern cloud engineering works: **Automate everything.**
 
+## 6. Common Pitfalls: Manual vs Automated
+
+| Problem | Manual (Working) | Automated (Failing) | Explanation |
+| :--- | :--- | :--- | :--- |
+| **Missing .env** | File exists in folder (ignored by git). | Runner starts fresh from git (file is missing). | **Fix:** Inject secrets via GitHub Secrets & generate .env on fly. |
+| **Volumes** | Docker creates internal volume automagically. | Ansible creates host folder, Docker ignores it. | **Fix:** Bind mount explicit host paths `device: ${DATA_DIR}/data`. |
+| **Permissions** | You are `yilin`, specific shell env is loaded. | Systemd is `root`, non-interactive, no env vars. | **Fix:** Explicitly pass `Environment=` in systemd unit file. |
+| **Paths** | You `cd` into folder and run. | Systemd runs from `/` or specified working dir. | **Fix:** Always use absolute paths in automation configs. |
 
 ---
 
