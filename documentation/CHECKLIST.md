@@ -445,6 +445,8 @@ aws configure
 # creates a separate named profile & stores another copy under a different profile name
 aws configure --profile cloud-1-dev
 
+curl -s https://checkip.amazonaws.com
+
 ```
 
 ```bash
