@@ -100,9 +100,19 @@ services:
 volumes:
   # mariadb volume
   mariadb_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${DATA_DIR}/mariadb_data
+      o: bind
   
   # wordpress volume
   wordpress_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${DATA_DIR}/wordpress_data
+      o: bind
 
   # # redis volume
   # redis_data:
