@@ -177,8 +177,10 @@
           [Install]
           WantedBy=multi-user.target
         mode: '0644'
-      # notify must be at the task level (same indentation as name and ansible.builtin.copy
       notify: Daemon reload
+
+    - name: Force systemd reload if service changed
+      ansible.builtin.meta: flush_handlers
 
     - name: Enable and start cloud-1 service
       ansible.builtin.service:
