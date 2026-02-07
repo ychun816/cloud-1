@@ -28,6 +28,8 @@ help:
 	@echo "********* TERRAFORM *********************"
 	@echo "  tf-plan ENV=...			Run Terraform Plan (Dry-run)"
 	@echo "  tf-deploy ENV=...		Run Terraform Apply (Provision)"
+	@echo "********* ANSIBLE ***********************"
+	@echo "  ansible ENV=...		Run Ansible playbook to configure servers"
 	@echo "  tf-destroy ENV=...		Run Terraform Destroy (Tear down)"
 	@echo "********* CLEANER ***************************"
 	@echo "  tf-clean-cache ENV=...		Remove only temp artifacts (plans, cache), keep state"
@@ -193,6 +195,13 @@ check-ssh-env:
 	printf "%b\n" "${BG_ORANGE}${FG_BLACK_BOLD}$(ENV) environment SSH verified${RESET}"
 
 
+# ANSIBLE ###############################################################
+ansible:
+	@test -n "$(ENV)" || { echo "Usage: make ansible ENV=dev|prod"; exit 1; }
+	@case "$(ENV)" in dev|prod) ;; *) echo "ERROR: ENV must be 'dev' or 'prod'"; exit 1;; esac
+	@echo "Running Ansible Playbook for $(ENV)..."
+	@ansible-playbook -i ansible/inventories/$(ENV)/hosts.ini ansible/playbook.yml
+
 # CLEANERS ###############################################################
 # [NUKE] Destroy infrastructure AND delete local state (Project Reset)
 nuke:
@@ -204,5 +213,5 @@ nuke:
 	@sh -c 'cd terraform/envs/$(ENV) && rm -rf .terraform terraform.tfstate terraform.tfstate.backup tf_outputs.json'
 	@echo "Environment $(ENV) has been completely reset."
 
-.PHONY: help check-tools setup-tools clean tf-clean-safe tf-nuke-env tf-nuke-all check-ssh-env check-aws-env tf-plan tf-deploy tf-destroy tf-clean-check
+.PHONY: help check-tools setup-tools clean tf-clean-safe tf-nuke-env tf-nuke-all check-ssh-env check-aws-env tf-plan tf-deploy tf-destroy tf-clean-check ansible
 
