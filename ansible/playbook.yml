@@ -182,11 +182,35 @@
     - name: Force systemd reload if service changed
       ansible.builtin.meta: flush_handlers
 
-    - name: Enable and start cloud-1 service
-      ansible.builtin.service:
-        name: cloud-1
-        state: started
-        enabled: true
+    - name: Try to start service and debug on failure
+      block:
+        - name: Enable and start cloud-1 service
+          ansible.builtin.service:
+            name: cloud-1
+            state: started
+            enabled: true
+      rescue:
+        - name: Get systemd status
+          ansible.builtin.command: systemctl status cloud-1.service -l --no-pager
+          register: service_status
+          changed_when: false
+
+        - name: Show systemd status
+          ansible.builtin.debug:
+            var: service_status.stdout_lines
+
+        - name: Get journal logs
+          ansible.builtin.command: journalctl -xeu cloud-1.service --no-pager -n 50
+          register: journal_logs
+          changed_when: false
+
+        - name: Show journal logs
+          ansible.builtin.debug:
+            var: journal_logs.stdout_lines
+
+        - name: Fail the playbook
+          ansible.builtin.fail:
+            msg: "Service startup failed. Check the logs printed above."
 
   handlers:
     - name: Daemon reload
