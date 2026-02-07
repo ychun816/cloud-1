@@ -57,7 +57,7 @@
     *   [ ] Commit and push all changes to GitHub.
     *   [ ] Go to the **Actions** tab in your GitHub repository.
     *   [ ] Confirm the "Deploy to AWS" workflow runs successfully (green checkmark).
-    *   [ ] **TODO Next:** Fix `.env` missing in CI/CD (add secrets).
+    *   [V] **TODO Next:** Fix `.env` missing in CI/CD (add secrets).
 
 - check status in summary
 ```bash
