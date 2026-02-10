@@ -38,6 +38,10 @@ docker/*.log
 # Python (if present later)
 __pycache__/
 *.pyc
+
+# Ignore SSH keys
+deploy_key
+deploy_key.pub
 # Environment variables (contains sensitive passwords)
 .env
 
