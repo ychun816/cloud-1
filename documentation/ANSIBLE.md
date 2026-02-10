@@ -294,3 +294,18 @@ Transition from **Manual Execution** to **Automated Deployment**
 | **Missing Directories** | `CHDIR failed: No such file or directory` (Systemd status). | Variable `{{ compose_dir }}` was undefined, so Ansible created nothing or wrong path. | Centralized `app_dir` and `compose_dir` in `variables.yml` to ensure role visibility. |
 | **Volume Paths** | Docker creates internal volumes instead of using host folders. | `docker-compose.yml` used named volumes without `device` bindings for `DATA_DIR`. | Updated compose file to explicitly bind mount host paths using `${DATA_DIR}`. |
 | **CI Visibility** | "Task Failed" with no useful output in GitHub Actions. | CI runner is non-interactive; standard error logs aren't always captured by Ansible. | Added `block/rescue` logic to run `journalctl -xe` and print logs upon failure. |
+
+
+---
+
+## ansible testing commands (to do!)
+
+```bash
+ansible-galaxy init role_test
+mkdir -p [repo_name]
+ansible-galaxy init test
+ansible-galaxy lint
+ansible-galaxy role
+ansible validate
+
+```
