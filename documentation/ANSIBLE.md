@@ -309,3 +309,132 @@ ansible-galaxy role
 ansible validate
 
 ```
+
+---
+
+
+## Ansible Implementation
+
+> other notes in /anible/README.md
+
+### Ansible files & workflow:
+1. `inventory.ini` tells Ansible where to connect.
+2. `playbook.yml` defines what to do.
+3. `variables.yml` defines values used by the playbook.
+4. `.j2` templates are rendered with those variables and written to the target server.
+5. The result → Docker app deployed on your EC2. 
+```
+TEMPLATE (.j2)
+↓ + VARIABLES
+-------------------
+= RENDERED FILE (.yml)
+↓
+→ COPIED TO SERVER
+↓
+→ USED IN DEPLOYMENT
+```
+
+```bash
+┌──────────────────────────────┐
+│        YOU (the user)        │
+│ Run: ansible-playbook playbook.yml
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ inventory.ini                │
+│ - Defines target hosts, SSH  │
+│   keys, interpreter, etc.    │
+│ Example: 1.2.3.4 ansible_user=ubuntu
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ playbook.yml                 │
+│ - Calls "roles/docker"       │
+│ - Includes "variables.yml"   │
+│ - Tells Ansible to apply     │
+│   the template task          │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ variables.yml                │
+│ - Defines values used inside │
+│   the Jinja2 template        │
+│ e.g. app_dir=/opt/cloud-1    │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ roles/docker/tasks/main.yml  │
+│ - Has a task like:           │
+│   template:                  │
+│     src: docker-compose.yml.j2
+│     dest: "{{ compose_dir }}/docker-compose.yml"
+└──────────────┬───────────────┘
+               │
+               ▼
+────────────────────────────────────────────
+   Inside the `template:` task (Ansible magic)
+────────────────────────────────────────────
+               │
+               ▼
+┌──────────────────────────────┐
+│ 1️⃣ Read Source Template (.j2) │
+│ e.g., roles/docker/templates/ │
+│      docker-compose.yml.j2    │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ 2️⃣ Parse with Jinja2 Engine  │
+│ - Finds {{ variables }} and  │
+│   {% logic %} blocks         │
+│ - Replaces using vars.yml or │
+│   playbook vars              │
+│ Example:                     │
+│   "{{ app_dir }}" → "/opt/cloud-1"
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ 3️⃣ Render Final Text File    │
+│ - The template now becomes a │
+│   plain YAML file (no braces)│
+│ Example output:              │
+│   volumes:                   │
+│     - /opt/cloud-1/html:/usr/share/nginx/html
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ 4️⃣ Copy Rendered File to     │
+│   Remote Host via SSH        │
+│ - Saved at path in 'dest:'   │
+│   e.g. /opt/cloud-1/compose/ │
+│        docker-compose.yml    │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ 5️⃣ Next Task Executes Docker │
+│   - "docker compose up -d"   │
+│   - Containers start running │
+│     using the rendered file  │
+└──────────────────────────────┘
+
+```
+
+### files brief
+```bash
+| Path                                           | Type            | Purpose                                                                                                | Example Usage                                           |
+| ---------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------- |
+| `inventory.ini`                                | File            | Lists your **target servers** (where Ansible will deploy). Defines host groups (`[web]`, `[db]`, etc.) | Defines EC2 instance IP, SSH key path                   |
+| `inventory.ini.example`                        | Template        | Example version of `inventory.ini` for reference or new users                                          | Shows how to structure connection settings              |
+| `playbook.yml`                                 | File            | The **main Ansible script** — defines what tasks or roles to run on which host groups                  | Calls the `docker` role to deploy your app              |
+| `roles/docker/`                                | Folder          | Self-contained logic for configuring Docker                                                            | Reusable building block                                 |
+| `roles/docker/tasks/main.yml`                  | File            | Contains a **sequence of tasks** (Ansible actions)                                                     | Install Docker, copy compose template, start containers |
+| `roles/docker/templates/docker-compose.yml.j2` | Jinja2 template | Template for Docker Compose file                                                                       | Variables in `{{ brackets }}` get replaced              |
+| `variables.yml`                                | File            | Stores global **variables** used in playbook and templates                                             | Defines repo URL, app directory, etc.                   |
+```
