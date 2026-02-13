@@ -4,6 +4,7 @@ set -e
 # Configuration
 REGION="eu-west-3"
 PROJECT_NAME="cloud-1"
+
 # S3 Buckets must be globally unique. adjusting connection to user specific handle if possible, 
 # otherwise using a random suffix is valid. Here we use a likely unique pattern.
 BUCKET_NAME="tf-state-${PROJECT_NAME}-ychun816"

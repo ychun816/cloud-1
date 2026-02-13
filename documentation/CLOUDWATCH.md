@@ -1,10 +1,29 @@
-# Monitoring with Amazon CloudWatch Agent
+# (AWS) CloudWatch Agent
+
+
+
+## cloudwatch structure 
+```bash
+ansible/roles/cloudwatch/
+├── handlers
+│   └── main.yml
+├── tasks
+│   └── main.yml
+└── templates
+    └── amazon-cloudwatch-agent.json.j2
+```
+* **handlers/main.yml**: Defines handlers (e.g., restart agent on config change).
+* **tasks/main.yml**: Downloads the .deb package, installs it, copies the config file, and starts the service.
+* **templates/amazon-cloudwatch-agent.json.j2**: Jinja2 template for the agent config (what to measure: Disk Used %, Memory Used %).
+
+
+---
 
 ## 1. What is the CloudWatch Agent
 The Amazon CloudWatch Agent is a piece of software installed on your EC2 instances. While AWS automatically tracks basic metrics (like CPU usage and Network traffic), it **cannot** see inside your operating system to measure memory (RAM) or disk space usage.
 
 The CloudWatch Agent bridges this gap by reading system logs and performance counters from inside the OS and sending them to the AWS CloudWatch Console.
-
+---
 ## 2. How It Is Configured in This Project
 
 We automated the installation using Ansible so you don't have to run the manual `amazon-cloudwatch-agent-config-wizard`.
@@ -13,11 +32,10 @@ We automated the installation using Ansible so you don't have to run the manual 
 1.  **IAM Role (`iam.tf`):**
     *   **Purpose:** Gives the EC2 server permission (`CloudWatchAgentServerPolicy`) to upload data to AWS. Without this, the agent would get "Access Denied" errors.
 
-2.  **Ansible Role (`ansible/roles/cloudwatch/`):**
-    *   **Tasks (`tasks/main.yml`):** Downloads the `.deb` package, installs it, copies the config file, and starts the service.
-    *   **Configuration (`templates/amazon-cloudwatch-agent.json.j2`):** A JSON file defining exactly *what* to measure (Disk Used %, Memory Used %).
+2.  **Ansible Role Structure (`ansible/roles/cloudwatch/`):**
 
-## 3. How to Verify It Is Working
+---
+## 3. to Verify It Is Working
 
 After deploying your project with `ansible-playbook`:
 
@@ -30,6 +48,7 @@ After deploying your project with `ansible-playbook`:
     *   **ImageId, InstanceId, InstanceType, device, fstype, path** -> Contains `disk_used_percent` (Disk storage).
 6.  Select a metric to view the graph.
 
+---
 ## 4. Troubleshooting
 
 If metrics are not appearing:
