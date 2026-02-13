@@ -49,6 +49,10 @@
 [V] CI/CD Pipeline: GitHub Actions workflow (`deploy.yml`) created for automated deployment
 [V] Production Environment: Configured independently with cost-optimized settings (`t3.micro`)
 
+
+### TODO (if to launch prod)
+- [ ] Run `terraform init` in `terraform/envs/prod` to generate .terraform.lock.hcl and initialize provider/modules for production environment.
+
 ### feb6-feb7 (Verification)
  These are the final steps to prove your project meets all requirements:
 
