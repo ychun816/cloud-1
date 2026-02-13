@@ -14,7 +14,7 @@
   - [Deployment & Devops Tools Comparison](documentation/DEPLOYMENT.md)
   - [terraform](documentation/TERRAFORM.md)
   - [ansible](documentation/ANSIBLE.md)
-  - [automization](documentation/automization.md)
+  - [automization](documentation/AUTOMIZATION.md)
   - [database](documentation/DATABASE.md)
   - [(AWS service) Cloudwatch](documentation/CLOUDWATCH.md)
   - [notes for newbs](documentation/NEWBS_NOTES.md)
