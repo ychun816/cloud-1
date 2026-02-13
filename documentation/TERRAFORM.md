@@ -43,6 +43,33 @@ GitHub Actions → cd envs/dev → terraform init/plan/apply → outputs → ans
 ---
 
 ## repo structure
+This structure enforces:
+- Environment isolation (dev ≠ prod)
+- Reusable infrastructure modules
+- Clean separation of concerns -> avoid accidental `terraform apply`
+- Scalable growth for future environments
+- Safe operation/production workflows
+- `modules/` -> keeps logic centralized and reusable.
+
+```bash
+envs/dev/main.tf
+        ↓
+calls modules/network
+        ↓
+creates VPC, subnets, routing
+        ↓
+calls modules/ec2
+        ↓
+creates instance inside that network
+
+```
+- split `network` and `ec2` Modules -> follow Single Responsibility Principle (SRP)
+| Module  | Responsibility                  |
+| ------- | ------------------------------- |
+| network | VPC, subnets, route tables, IGW |
+| ec2     | Compute + IAM roles             |
+
+
 
 ```bash
 /cloud-1/terraform/
@@ -70,17 +97,20 @@ GitHub Actions → cd envs/dev → terraform init/plan/apply → outputs → ans
 │       ├── main.tf
 │       ├── outputs.tf
 │       └── variables.tf
-└── tf_outputs.json
-
+├── tf_outputs.json
+└── .terraform.lock.hcl
 ```
 
-| File                       | Typical contents                   | Why                                 |
-| -------------------------- | ---------------------------------- | ----------------------------------- |
-| **main.tf**                | Key resources (EC2, SG, AMI, etc.) | Simple to understand, small project |
-| **network.tf** (optional)  | VPC, subnets, routing              | If you manage networking separately |
-| **security.tf** (optional) | Security groups                    | If you have multiple SGs            |
-| **compute.tf** (optional)  | EC2, autoscaling                   | For scaling / multiple servers      |
-| **modules/**               | Reusable sets of resources         | For larger teams/projects           |
+| File                   | Purpose                                                                                 |
+| ---------------------- | --------------------------------------------------------------------------------------- |
+| `provider.tf`          | Defines cloud provider & backend config                                                 |
+| `main.tf`              | Calls reusable modules                                                                  |
+| `variables.tf`         | Declares input variables                                                                |
+| `terraform.tfvars`     | Sets environment-specific values                                                        |
+| `outputs.tf`           | Exposes values (e.g., public IP)                                                        |
+| `init_backend.sh`      | Local script to initialize Terraform backend (e.g., S3, remote state). Run locally.     |
+| `tf_outputs.json`      | Stores Terraform output values in JSON for automation (e.g., Ansible, scripts).          |
+| `.terraform.lock.hcl`  | Locks provider/module versions for reproducible Terraform runs. One per environment.     |
 
 
 ---
@@ -89,7 +119,7 @@ GitHub Actions → cd envs/dev → terraform init/plan/apply → outputs → ans
 Terraform → Ansible
 
 ```bash
-AWS credentials ─┬─> terraform init/plan/apply ─┬─> outputs (IP/DNS)
+AWS credentials ─┬─> terraform init/plan/apply ─-┬─> outputs (IP/DNS)
                  │                               │
                  └─> SSH keypair (existing or TF)└─> Ansible inventory
                                                      └─> ansible-playbook
@@ -173,15 +203,14 @@ terraform apply
 #### Step 1: Verify Terraform outputs
 
 ```bash
-# after terrafrom apply is successful:
-# 1) print terrafrom output in terminal to verifly (or in json fromat)
-# 2) write saving the output into tf_outputs.json 
+# After terraform apply is successful:
+# 1) Print terraform output in terminal to verify (or in JSON format)
+# 2) Save the output into tf_outputs.json for automation
 terraform output -json | tee tf_outputs.json
 
-# terraform output 
-# terraform output -json #in json format
-# "tee" : a command-line tool that (1)duplicates the output of a command, (2)sends it to both the screen and into the file. #almost always used with pipe | in front
-# terraform output -json > tf_outputs.json => won't see anything on terminal
+# tf_outputs.json is used by other tools/scripts (e.g., Ansible) to access output values easily.
+# "tee" duplicates output to both terminal and file.
+# terraform output -json > tf_outputs.json (no terminal output)
 ```
 #### Step 2: Update Security Group SSH access to your current IP (if needed)
 ```bash
@@ -236,3 +265,11 @@ echo "Your current public IP: $MYIP" # for verify
 # Useful for debugging, seeing actual attributes, or verifying deployed values
 terraform state show <resource>
 ```
+
+---
+
+## Additional Notes
+
+- `init_backend.sh` is a local script for backend setup. It should remain in your workspace and not be uploaded to the cloud.
+- `tf_outputs.json` is a machine-readable file for storing Terraform outputs, typically in JSON, to support automation and integration.
+- `.terraform.lock.hcl` is generated locally per environment after terraform init/plan. It ensures consistent provider/module versions and should be committed for reproducibility.
