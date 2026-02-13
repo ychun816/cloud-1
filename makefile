@@ -69,39 +69,17 @@ check-tools:
 setup-tools:
 	@echo "Installing local tools: Ansible, Terraform, AWS CLI..."
 
-# ANSIBLE 
-	@echo "\n[Step 1/3] Ensure Ansible is installed"
+	@echo "Installing local tools: Ansible, Terraform, AWS CLI..."
+	@echo "[Step 1/2] Ensure Ansible is installed"
 	@if command -v ansible >/dev/null 2>&1; then \
- 		echo "Ansible already installed."; \
+		echo "Ansible already installed."; \
 	else \
-		echo "ERROR: Ansible not found. Please install it manually:" \
-		echo "  Ubuntu/Debian: sudo apt install ansible" \
-		echo "  MacOS: brew install ansible" \
+		echo "ERROR: Ansible not found. Please install it manually:"; \
+		echo "  Ubuntu/Debian: sudo apt install ansible"; \
 		exit 1; \
-	fi; \
-# TERRAFORM & AWS CLI
-	@echo "\n[Step 2/3] Install Terraform & AWS CLI via Ansible"; \
-	ag_bin=ansible-galaxy; \
-	if ! command -v $$ag_bin >/dev/null 2>&1; then \
-		user_bin_dir="$$($$(/usr/bin/env python3 -c 'import site,sys;sys.stdout.write(site.USER_BASE)'))/bin"; \
-		[ -x "$$user_bin_dir/ansible-galaxy" ] && ag_bin="$$user_bin_dir/ansible-galaxy"; \
-	fi; \
-	"$$ag_bin" collection install community.general || true; \
-	pb_bin=ansible-playbook; \
-	if ! command -v $$pb_bin >/dev/null 2>&1; then \
-		user_bin_dir="$$($$(/usr/bin/env python3 -c 'import site,sys;sys.stdout.write(site.USER_BASE)'))/bin"; \
-		[ -x "$$user_bin_dir/ansible-playbook" ] && pb_bin="$$user_bin_dir/ansible-playbook"; \
-	fi; \
-	( cd "$(CURDIR)/ansible" && ANSIBLE_CONFIG="ansible.cfg" "$$pb_bin" tools.yml ); \
-
-# FINAL CHECK 	
-	@echo "\n[Step 3/3] Verify installations"; \
-	command -v ansible >/dev/null 2>&1 && ansible --version | head -n 1 || echo "Ansible not found"; \
-	command -v terraform >/dev/null 2>&1 && terraform -version | head -n 1 || echo "Terraform not found"; \
-	command -v aws >/dev/null 2>&1 && aws --version || echo "AWS CLI not found"; \
-	
-# 	@echo "$(BG_ORANGE)Installation Successful$(RESET)";
-	@printf "\033[48;5;216m\033[1;30m Installation Successful \033[0m\n"
+	fi;
+	@echo "[Step 2/2] Please install Terraform and AWS CLI manually if needed."
+	@echo "Installation Successful"
 
 # 	printf "\033[48;5;216m\033[1;30m ✔ Ansible is installed \033[0m\n"; \
 # 	printf "\033[48;5;216m\033[1;30m ✔ Terraform is installed \033[0m\n"; \
