@@ -353,3 +353,100 @@ A security scanning tool that searches your Git repositories for:
 
 
 ---
+
+
+## HTTP / HTTPS / SSL / TLS
+
+- HTTPS  → HTTP + TLS encryption
+- HTTP   → plain web traffic
+- SSL    → old, replaced by TLS
+- TLS    → current encryption layer
+
+> HTTP moves data.
+> TLS protects it.
+> HTTPS combines both.
+> SSL is obsolete.(OLD!)
+
+### concepts clarify 
+- HTTP can never be secure by itself.
+- HTTPS ≠ SSL
+- HTTPS uses TLS, not SSL.
+- “SSL certificate” is a legacy term ->  It actually means a `TLS certificate`
+
+
+| Term      | Type                       | What it is                       | Purpose                      | Encrypts data? | Used today? | Key notes                  |
+| --------- | -------------------------- | -------------------------------- | ---------------------------- | -------------- | ----------- | -------------------------- |
+| **HTTP**  | Application protocol       | Basic web communication protocol | Transfer web pages and data  | ❌ No           | ⚠ Limited   | Data sent in plain text    |
+| **HTTPS** | Application protocol       | HTTP over TLS                    | Secure web communication     | ✅ Yes          | ✅ Yes       | Uses TLS for encryption    |
+| **SSL**   | Security protocol (legacy) | Old encryption protocol          | Secure network communication | ❌ No (broken)  | ❌ No        | Deprecated and insecure    |
+| **TLS**   | Security protocol          | Modern replacement for SSL       | Encrypt data in transit      | ✅ Yes          | ✅ Yes       | Industry security standard |
+
+---
+
+## application protocol vs security protocol
+
+How they work together:
+- An application protocol does not provide security by default.
+- A security protocol wraps around it.
+
+> Application protocol → The language and rules of a conversation
+> Security protocol → A sealed, locked envelope protecting the message
+
+```
+HTTP  → sends web requests
+TLS   → encrypts HTTP
+HTTPS → HTTP + TLS
+```
+
+
+| Aspect                    | Application protocol                       | Security protocol                          |
+| ------------------------- | ------------------------------------------ | ------------------------------------------ |
+| Purpose                   | Defines **what data is exchanged**         | Defines **how data is protected**          |
+| Main role                 | Enables communication between applications | Secures communication channels             |
+| Data handling             | Specifies message format and actions       | Encrypts, authenticates, ensures integrity |
+| Operates at               | Application layer                          | Transport / security layer                 |
+| Can work alone            | ✅ Yes                                      | ❌ No (wraps another protocol)              |
+| Examples                  | HTTP, FTP, SMTP, DNS                       | TLS, SSL, IPsec                            |
+| Typical question answered | “What is being sent?”                      | “Is it safe to send?”                      |
+
+---
+
+## OSI model vs TCP/IP model
+
+A browser sends HTTP instructions, TLS protects them, and TCP/IP delivers them.
+> OSI helps you understand and troubleshoot networking concepts
+> TCP/IP explains how the Internet actually works
+> Modern protocols map concepts from OSI into TCP/IP layers
+
+### High-level flow
+```pgsql
+Browser
+  ↓
+DNS lookup (get server IP)
+  ↓
+TCP connection
+  ↓
+TLS handshake
+  ↓
+HTTP request/response (encrypted)
+```
+
+### Layer-by-layer view (OSI + TCP/IP)
+| Step | OSI Layer        | TCP/IP Layer   | What happens                                      |
+| ---- | ---------------- | -------------- | ------------------------------------------------- |
+| 1    | Application (7)  | Application    | Browser prepares HTTP request (GET/POST, headers) |
+| 2    | Presentation (6) | Application    | **TLS handshake starts** (certificates, keys)     |
+| 3    | Session (5)      | Application    | Secure session established                        |
+| 4    | Transport (4)    | Transport      | TCP connection (ports 443 ↔ ephemeral port)       |
+| 5    | Network (3)      | Internet       | IP routing across the Internet                    |
+| 6    | Data Link (2)    | Network Access | Ethernet / Wi-Fi framing                          |
+| 7    | Physical (1)     | Network Access | Bits transmitted over cable / radio               |
+
+| Aspect                | OSI model                   | TCP/IP model                     |
+| --------------------- | --------------------------- | -------------------------------- |
+| Purpose               | Conceptual / teaching model | Practical / implementation model |
+| Number of layers      | 7                           | 4                                |
+| Used in real networks | ❌ No (reference only)       | ✅ Yes                            |
+| Designed by           | ISO                         | DARPA / DoD                      |
+| Security placement    | Layer 6 (Presentation)      | Application layer                |
+
