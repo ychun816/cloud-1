@@ -30,7 +30,6 @@
 
 **ansible**
 [V] Main playbook `playbook.yml` implemented (Docker, UFW, Systemd, Repo clone)
-[V] Local dev tools setup `tools.yml` implemented (Terraform, AWS CLI on macOS)
 [V] Roles created (`docker`, `terraform`, `awscli`, `cloudwatch`)
 [V] Systemd service integration for auto-start/stop of Compose stack
 [V] Dynamic inventory setup with correct IP (generate_inventory.py)
