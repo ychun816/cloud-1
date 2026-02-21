@@ -32,6 +32,9 @@ help:
 	@echo "  run-ansible ENV=...		Run Ansible playbook to configure servers"
 	@echo "  check-containers ENV=...	Check running Docker containers via Ansible"
 	@echo "  tf-destroy ENV=...		Run Terraform Destroy (Tear down)"
+	@echo "********* ANSIBLE CONTAINERS UP/DOWN ***********************"
+	@echo "  compose-up ENV=...		Start cloud-1 systemd service (docker compose up) on env"
+	@echo "  compose-down ENV=...		Stop cloud-1 systemd service (docker compose down) on env"
 	@echo "********* CLEANER ***************************"
 	@echo "  tf-clean-cache ENV=...		Remove only temp artifacts (plans, cache), keep state"
 	@echo "  tf-clean-check ENV=...		Verify cleanup (check for running instances and temp files)"
@@ -192,6 +195,20 @@ nuke:
 	@echo "Destroy successful. Removing local state files..."
 	@sh -c 'cd terraform/envs/$(ENV) && rm -rf .terraform terraform.tfstate terraform.tfstate.backup tf_outputs.json'
 	@echo "Environment $(ENV) has been completely reset."
+
+# Start the cloud-1 systemd service (docker compose up via systemd)
+compose-up:
+	@test -n "$(ENV)" || { echo "Usage: make compose-up ENV=dev|prod"; exit 1; }
+	@case "$(ENV)" in dev|prod) ;; *) echo "ERROR: ENV must be 'dev' or 'prod'"; exit 1;; esac
+	@echo "Starting cloud-1 systemd service (docker compose up) on $(ENV)..."
+	@ansible -i ansible/inventories/$(ENV)/hosts.ini all -m ansible.builtin.service -a "name=cloud-1 state=started enabled=yes" --become
+
+# Stop the cloud-1 systemd service (docker compose down via systemd)
+compose-down:
+	@test -n "$(ENV)" || { echo "Usage: make compose-down ENV=dev|prod"; exit 1; }
+	@case "$(ENV)" in dev|prod) ;; *) echo "ERROR: ENV must be 'dev' or 'prod'"; exit 1;; esac
+	@echo "Stopping cloud-1 systemd service (docker compose down) on $(ENV)..."
+	@ansible -i ansible/inventories/$(ENV)/hosts.ini all -m ansible.builtin.service -a "name=cloud-1 state=stopped" --become
 
 .PHONY: help check-tools setup-tools tf-clean-cache nuke check-ssh-env check-aws-ec2 tf-plan tf-deploy tf-destroy tf-clean-check run-ansible check-containers
 
