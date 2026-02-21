@@ -227,17 +227,15 @@ Option B: Manual deployment (if server already exists)
 
 ```bash
 # SSH into your server
-ssh ubuntu@[SERVER_IP] 
-ssh ubuntu@35.180.100.72
+ssh -i deploy_key ubuntu@[SERVER_IP] 
+ssh -i deploy_key ubuntu@13.38.83.102
 
 # check IP address viewed by external 
 curl ifconfig.me
 
 # restart container if update changes
-cd /home/ubuntu/cloud-1/compose
-sudo docker compose down -v
-sudo docker compose up -d --build 
-#-d (detached, run in background) / #--build (Force Rebuild)
+make compose-up ENV=dev
+make compose-down ENV=dev
 
 # check if containers are running 
 sudo docker ps
