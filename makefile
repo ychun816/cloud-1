@@ -140,8 +140,8 @@ check-aws-ec2:
 
 # SSH CHECK (use after terraform apply to check SSH works)
 # Verify SSH access to specified environment: update SG, save outputs, test port & login
-check-ssh-env:
-	@test -n "$(ENV)" || { echo "Usage: make check-ssh-env ENV=dev|prod"; exit 1; }
+init-ssh-ec2:
+	@test -n "$(ENV)" || { echo "Usage: make init-ssh-ec2 ENV=dev|prod"; exit 1; }
 	@case "$(ENV)" in dev|prod) ;; *) echo "ERROR: ENV must be 'dev' or 'prod'"; exit 1;; esac
 	@echo "=== Verifying SSH access to $(ENV) environment ==="
 	@echo "[1/5] Fetching your current public IP..."

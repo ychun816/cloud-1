@@ -212,14 +212,17 @@ make check-tools
 # 1 terraform deploy the initate EC2 instance
 make tf-deploy ENV=dev
 
-# 2 Check if EC2 instance is running and reachable (port 22)
+# 2 updates the security group with your current IP, saves outputs, and tests SSH access
+make init-ssh-ec2 ENV=dev
+
+# 3 Check if EC2 instance is running and reachable (port 22)
 make check-aws-ec2 ENV=dev
 
-# 3 Ensure your current IP is allowed for SSH and test SSH access
+# 4 Ensure your current IP is allowed for SSH and test SSH access
 # run terraform init & terraform apply -> update the security group with current public IP for SSH access (port 220) with deploy_key
-make check-ssh-env ENV=dev   
+#make init-ssh-ec2 ENV=dev
 
-# 4  Run Ansible to configure/setup everything
+# 5  Run Ansible to configure/setup everything
 make run-ansible ENV=dev
 ```
 
@@ -241,7 +244,6 @@ make check-containers ENV=dev
 ```bash
 # From your local machine (replace with YOUR_SERVER_IP)
 curl -v http://[SERVER_IP] 
-# 13.38.83.102
 
 
 # Should see:
@@ -254,7 +256,6 @@ curl -v http://[SERVER_IP]
 ```bash
 # Test HTTPS (ignore self-signed cert warning)
 curl -k -I https://YOUR_SERVER_IP
-# 13.38.83.102
 
 # Should see:
 # HTTP/2 200 
@@ -282,7 +283,32 @@ https://[SERVER_IP]/adminer/
 # - Database: wordpress
 ```
 
-### STEP 6 (final): destroy EC2 
+### STEP 6 : check cloudwatch
+```bash
+# SSH into running EC2 instance
+ssh -i deploy_key ubuntu@<EC2_PUBLIC_IP>
+# ssh -i deploy_key ubuntu@13.38.93.240
+
+# once inside EC2, manually start the CloudWatch
+sudo systemctl enable amazon-cloudwatch-agent
+sudo systemctl start amazon-cloudwatch-agent
+
+# check if the CloudWatch agent process is running on ec2
+ps aux | grep amazon-cloudwatch-agent
+
+# check CloudWatch running
+sudo systemctl status amazon-cloudwatch-agent
+
+# check CloudWatch logs
+tail -n 20 /opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log
+
+# close/leave EC2
+exit
+
+```
+
+
+### STEP 7 (final): destroy EC2 
 ```bash
 # destory EC2 instance
 make tf-destroy ENV=dev
@@ -292,6 +318,9 @@ make tf-clean-cache ENV=dev
 
 # confirm there are no running EC2 instances and no leftover temp files
 make tf-clean-check ENV=dev
+
+# check if EC2 still running
+make check-aws-ec2 ENV=dev
 
 ```
 
@@ -305,7 +334,9 @@ make tf-clean-check ENV=dev
 ```bash
 aws sts get-caller-identity
 
-# configure as default
+aws-cli --version
+
+# configure as default -> show aws ID
 aws configure 
 
 # creates a separate named profile & stores another copy under a different profile name
