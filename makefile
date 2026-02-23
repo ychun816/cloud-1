@@ -1,4 +1,6 @@
-
+# Runs Terraform commands inside container via init_project.sh
+# Terraform is in Docker, but the Makefile wraps Docker commands for convenience.
+# Makefile for Terraform + Docker project
 
 #################
 # COLOR SETTING
@@ -19,7 +21,7 @@ help:
 	@echo ""
 	@echo "********* GENERAL SETUP ***************************"
 	@echo "  check-tools			Check Ansible, Terraform & AWS CLI; auto-setup if missing"
-# @echo "  setup-tools			Install Ansible, then install Terraform & AWS CLI via Ansible"
+	@echo "  setup-tools			Install Ansible, then install Terraform & AWS CLI via Ansible"
 	@echo "********* ENV CHECKERS ***************************"
 	@echo "  check-ssh-env ENV=...		Update SG to current IP, save outputs, test SSH for env"
 	@echo "  check-aws-ec2 ENV=...		List running EC2 instances in Dev/Prod (AWS CLI)"
@@ -67,55 +69,30 @@ check-tools:
 
 
 # install ansible, terraform, aws cli if not installed
-# setup-tools:
-# 	@echo "Installing local tools: Ansible, Terraform, AWS CLI..."
-# 	@echo "[Step 1/3] Installing Ansible (user-local)"
-# 	@if command -v ansible >/dev/null 2>&1; then \
-# 		echo "Ansible already installed."; \
-# 	else \
-# 		python3 -m pip install --user ansible && \
-# 		export PATH="$HOME/.local/bin:$PATH" && \
-# 		echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc && \
-# 		echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc; \
-# 	fi;
-# 	@echo "[Step 2/3] Installing Terraform (user-local)"
-# 	@TERRAFORM_VERSION="1.6.6"; \
-# 	cd ~ && \
-# 	wget -q https://releases.hashicorp.com/terraform/$${TERRAFORM_VERSION}/terraform_$${TERRAFORM_VERSION}_linux_amd64.zip && \
-# 	unzip -o terraform_$${TERRAFORM_VERSION}_linux_amd64.zip && \
-# 	mkdir -p ~/bin && \
-# 	mv -f terraform ~/bin/ && \
-# 	if ! grep -q 'export PATH="$HOME/bin:$PATH"' ~/.bashrc 2>/dev/null; then \
-# 	  echo 'export PATH="$HOME/bin:$PATH"' >> ~/.bashrc; \
-# 	fi; \
-# 	if ! grep -q 'export PATH="$HOME/bin:$PATH"' ~/.zshrc 2>/dev/null; then \
-# 	  echo 'export PATH="$HOME/bin:$PATH"' >> ~/.zshrc; \
-# 	fi; \
-# 	export PATH="$HOME/bin:$PATH";
-# 	       @echo "[Step 3/3] Installing AWS CLI (user-local)"
-# 	       @$(MAKE) install-awscli
-		   
-# Standalone AWS CLI install target
-# install-awscli:
-# 	       @echo "[AWS CLI] Removing any old installer zip..."
-# 	       @cd ~ && rm -f awscliv2.zip
-# 	       @echo "[AWS CLI] Downloading installer zip from Amazon..."
-# 	       @cd ~ && curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-# 	       @echo "[AWS CLI] Checking if installer file exists..."
-# 	       @cd ~ && if [ -f awscliv2.zip ]; then \
-# 		       echo "Installer file found. Extracting..."; \
-# 		       unzip -o awscliv2.zip; \
-# 		       echo "[AWS CLI] Running installer script..."; \
-# 		       ./aws/install --bin-dir $$HOME/.local/bin --install-dir $$HOME/.local/aws-cli --update; \
-# 		       echo "[AWS CLI] Updating PATH in bash/zsh profiles..."; \
-# 		       export PATH="$$HOME/.local/bin:$$PATH"; \
-# 		       echo 'export PATH="$$HOME/.local/bin:$$PATH"' >> ~/.bashrc; \
-# 		       echo 'export PATH="$$HOME/.local/bin:$$PATH"' >> ~/.zshrc; \
-# 		       echo "[AWS CLI] Installation Successful"; \
-# 	       else \
-# 		       echo "Installer file awscliv2.zip not found. Download failed."; \
-# 		       exit 1; \
-# 	       fi
+setup-tools:
+	python3 -m pip install --user ansible
+	export PATH="$$HOME/.local/bin:$$PATH"
+	( \
+		TERRAFORM_VERSION=1.6.6; \
+		cd $$HOME; \
+		wget https://releases.hashicorp.com/terraform/$${TERRAFORM_VERSION}/terraform_$${TERRAFORM_VERSION}_linux_amd64.zip; \
+		unzip terraform_$${TERRAFORM_VERSION}_linux_amd64.zip; \
+		mkdir -p $$HOME/bin; \
+		mv terraform $$HOME/bin/; \
+		if ! grep -q 'export PATH="$$HOME/bin:$$PATH"' $$HOME/.bashrc 2>/dev/null; then \
+			echo 'export PATH="$$HOME/bin:$$PATH"' >> $$HOME/.bashrc; \
+		fi; \
+		if ! grep -q 'export PATH="$$HOME/bin:$$PATH"' $$HOME/.zshrc 2>/dev/null; then \
+			echo 'export PATH="$$HOME/bin:$$PATH"' >> $$HOME/.zshrc; \
+		fi; \
+		export PATH="$$HOME/bin:$$PATH"; \
+	)
+
+# 	printf "\033[48;5;216m\033[1;30m ✔ Ansible is installed \033[0m\n"; \
+# 	printf "\033[48;5;216m\033[1;30m ✔ Terraform is installed \033[0m\n"; \
+# 	printf "\033[48;5;216m\033[1;30m ✔ AWS CLI is installed \033[0m\n"; \
+# 	echo "Installation Successful";
+
 
 # TERRAFROM ###############################################################
 tf-plan:
