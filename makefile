@@ -19,13 +19,12 @@ AWS_PROFILE ?= default
 help:
 	@echo "MAKE COMMANDS | Available targets: "
 	@echo ""
-	@echo "********* GENERAL SETUP ***************************"
+	@echo "********* GENERAL SETUP /ENV CHECKERS ***************************"
 	@echo "  check-tools			Check Ansible, Terraform & AWS CLI; auto-setup if missing"
-	@echo "  setup-tools			Install Ansible, then install Terraform & AWS CLI via Ansible"
-	@echo "********* ENV CHECKERS ***************************"
-	@echo "  check-ssh-env ENV=...		Update SG to current IP, save outputs, test SSH for env"
+# @echo "  setup-tools			Install Ansible, then install Terraform & AWS CLI via Ansible"
 	@echo "  check-aws-ec2 ENV=...		List running EC2 instances in Dev/Prod (AWS CLI)"
 	@echo "********* TERRAFORM *********************"
+	@echo "  init-ssh-ec2 ENV=...		Update SG to current IP, save outputs, test SSH for env"
 	@echo "  tf-plan ENV=...			Run Terraform Plan (Dry-run)"
 	@echo "  tf-deploy ENV=...		Run Terraform Apply (Provision)"
 	@echo "********* ANSIBLE ***********************"
@@ -69,29 +68,24 @@ check-tools:
 
 
 # install ansible, terraform, aws cli if not installed
-setup-tools:
-	python3 -m pip install --user ansible
-	export PATH="$$HOME/.local/bin:$$PATH"
-	( \
-		TERRAFORM_VERSION=1.6.6; \
-		cd $$HOME; \
-		wget https://releases.hashicorp.com/terraform/$${TERRAFORM_VERSION}/terraform_$${TERRAFORM_VERSION}_linux_amd64.zip; \
-		unzip terraform_$${TERRAFORM_VERSION}_linux_amd64.zip; \
-		mkdir -p $$HOME/bin; \
-		mv terraform $$HOME/bin/; \
-		if ! grep -q 'export PATH="$$HOME/bin:$$PATH"' $$HOME/.bashrc 2>/dev/null; then \
-			echo 'export PATH="$$HOME/bin:$$PATH"' >> $$HOME/.bashrc; \
-		fi; \
-		if ! grep -q 'export PATH="$$HOME/bin:$$PATH"' $$HOME/.zshrc 2>/dev/null; then \
-			echo 'export PATH="$$HOME/bin:$$PATH"' >> $$HOME/.zshrc; \
-		fi; \
-		export PATH="$$HOME/bin:$$PATH"; \
-	)
-
-# 	printf "\033[48;5;216m\033[1;30m ✔ Ansible is installed \033[0m\n"; \
-# 	printf "\033[48;5;216m\033[1;30m ✔ Terraform is installed \033[0m\n"; \
-# 	printf "\033[48;5;216m\033[1;30m ✔ AWS CLI is installed \033[0m\n"; \
-# 	echo "Installation Successful";
+# setup-tools:
+# 	python3 -m pip install --user ansible
+# 	export PATH="$$HOME/.local/bin:$$PATH"
+# 	( \
+# 		TERRAFORM_VERSION=1.6.6; \
+# 		cd $$HOME; \
+# 		wget https://releases.hashicorp.com/terraform/$${TERRAFORM_VERSION}/terraform_$${TERRAFORM_VERSION}_linux_amd64.zip; \
+# 		unzip terraform_$${TERRAFORM_VERSION}_linux_amd64.zip; \
+# 		mkdir -p $$HOME/bin; \
+# 		mv terraform $$HOME/bin/; \
+# 		if ! grep -q 'export PATH="$$HOME/bin:$$PATH"' $$HOME/.bashrc 2>/dev/null; then \
+# 			echo 'export PATH="$$HOME/bin:$$PATH"' >> $$HOME/.bashrc; \
+# 		fi; \
+# 		if ! grep -q 'export PATH="$$HOME/bin:$$PATH"' $$HOME/.zshrc 2>/dev/null; then \
+# 			echo 'export PATH="$$HOME/bin:$$PATH"' >> $$HOME/.zshrc; \
+# 		fi; \
+# 		export PATH="$$HOME/bin:$$PATH"; \
+# 	)
 
 
 # TERRAFROM ###############################################################
@@ -214,5 +208,5 @@ compose-down:
 	@echo "Stopping cloud-1 systemd service (docker compose down) on $(ENV)..."
 	@ansible -i ansible/inventories/$(ENV)/hosts.ini all -m ansible.builtin.service -a "name=cloud-1 state=stopped" --become
 
-.PHONY: help check-tools setup-tools tf-clean-cache nuke check-ssh-env check-aws-ec2 tf-plan tf-deploy tf-destroy tf-clean-check run-ansible check-containers
+.PHONY: help check-tools setup-tools tf-clean-cache nuke init-ssh-env check-aws-ec2 tf-plan tf-deploy tf-destroy tf-clean-check run-ansible check-containers
 

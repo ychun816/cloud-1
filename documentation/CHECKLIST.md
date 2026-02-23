@@ -100,7 +100,6 @@ tail -n 20 /opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log
 
 3.  **Application Verification**
     *   [x] Access the site via HTTPS (accept the self-signed certificate).
-    *   [ ] Create a WordPress post (with an image).
     *   [x] Reboot the server: `ssh ubuntu@<IP> 'sudo reboot'`
     *   [x] Wait 2 minutes.
     *   [x] Access the site again and verify the post is still there (Persistence & Auto-start).
@@ -192,93 +191,43 @@ exit #quit
 > Only run Ansible when you change configuration files (Nginx config, scripts, Docker setup).
 
 ---
+
 ## tests commands
 
 ### STEP 0: Pre-Deployment Setup
+1. make sure ssh key pairs and .env in repo:
+- `.env` in `cloud1/compose`
+- `deploy_key.pub` in `terraform/envs/dev`
+- `deploy_key` in root repo
 
+2. check if all tools are installed (ansible/terraform/aws cli)
 ```bash
-cd /home/yilin/GITHUB/cloud-1/compose
-cp ../.env.example .env
-nano .env  # Edit with your actual credentials
+make check-tools
 ```
 
 ### STEP 1: Deploy to Your Server
 
-Option A: Full automated deployment (if Terraform + Ansible ready)
-
+#### NORMAL SETUP 
 ```bash
-cd /home/yilin/GITHUB/cloud-1
-make check-ssh-env ENV=dev
-
-# 1. Deploy infrastructure
+# 1 terraform deploy the initate EC2 instance
 make tf-deploy ENV=dev
 
-# 2. Get the public IP from output (save it)
-make check-ssh-env ENV=dev
+# 2 Check if EC2 instance is running and reachable (port 22)
+make check-aws-ec2 ENV=dev
 
-# 3. Update Ansible inventory with that IP
-nano ansible/inventories/dev/hosts.ini
+# 3 Ensure your current IP is allowed for SSH and test SSH access
+# run terraform init & terraform apply -> update the security group with current public IP for SSH access (port 220) with deploy_key
+make check-ssh-env ENV=dev   
 
-# 4. Run Ansible to configure server
-ansible-playbook -i ansible/inventories/dev/hosts.ini ansible/playbook.yml
-```
-
-Option B: Manual deployment (if server already exists)
-
-```bash
-# SSH into your server
-ssh -i deploy_key ubuntu@[SERVER_IP] 
-ssh -i deploy_key ubuntu@13.38.83.102
-
-# check IP address viewed by external 
-curl ifconfig.me
-
-# restart container if update changes
-make compose-up ENV=dev
-make compose-down ENV=dev
-
-# check if containers are running 
-sudo docker ps
-
-# Check if the site answers locally (curl)
-curl -k https://localhost | grep "wordpress"
-
-# Check if database is ready
-sudo docker exec mariadb mysql -u root -p[ROOT_PASSWORD] -e "SHOW DATABASES;"
-sudo docker exec mariadb mysql -u root -piwantstage -e "SHOW DATABASES;" # OR: -piwillfindstageapril
-
-
-# Exit and test from browser
-https://[SERVER_IP] #35.180.100.72 (Accept warning)
-http://[SERVER_IP] #35.180.100.72  (Should redirect to HTTPS)
-https://[SERVER_IP]/adminer/  # 35.180.100.72 (Should see Adminer login)
-
-
-# if there's prob -> check if the server listen on port 80 and 443
-ss -tulpn | grep -E '80|443'
-
-# Clone/update your repo
-cd /home/ubuntu
-git clone https://github.com/your-repo/cloud-1.git
-# OR: cd cloud-1 && git pull
-
-# Copy your .env file to the server
-exit  # back to local
-scp compose/.env ubuntu@YOUR_SERVER_IP:/home/ubuntu/cloud-1/compose/
-
-# SSH back in
-ssh ubuntu@YOUR_SERVER_IP
-
-# Build and start containers
-cd /home/ubuntu/cloud-1/compose
-sudo docker-compose up -d --build
+# 4  Run Ansible to configure/setup everything
+make run-ansible ENV=dev
 ```
 
 ### STEP 2: Verify Containers are Running
 
 ```bash
 # Check all 4 containers are up
-sudo docker ps
+make check-containers ENV=dev
 
 # Should see:
 # - nginx
@@ -291,7 +240,9 @@ sudo docker ps
 
 ```bash
 # From your local machine (replace with YOUR_SERVER_IP)
-curl -v http://YOUR_SERVER_IP
+curl -v http://[SERVER_IP] 
+# 13.38.83.102
+
 
 # Should see:
 # HTTP/1.1 301 Moved Permanently
@@ -303,36 +254,132 @@ curl -v http://YOUR_SERVER_IP
 ```bash
 # Test HTTPS (ignore self-signed cert warning)
 curl -k -I https://YOUR_SERVER_IP
+# 13.38.83.102
 
 # Should see:
 # HTTP/2 200 
 # server: nginx
+# ...
 ```
 
-### STEP 5: Test WordPress Setup
+### STEP 5: Test WordPress Setup / WordPress login / Adminer (Database Access)
 
 ```bash
-https://YOUR_SERVER_IP
+# Wordpress
+https://[SERVER_IP]
+
+# Test Wordpress login:
+https://[SERVER_IP]/wp-admin
+
+# adminer 
+https://[SERVER_IP]/adminer/
+
+# Login with:
+# - System: MySQL
+# - Server: mariadb
+# - Username: wpuser (from .env MYSQL_USER)
+# - Password: SecureDbPass456! (from .env MYSQL_PASSWORD)
+# - Database: wordpress
 ```
 
-Test login:
+### STEP 6 (final): destroy EC2 
 ```bash
-https://YOUR_SERVER_IP/wp-admin
+# destory EC2 instance
+make tf-destroy ENV=dev
+
+#  remove temporary Terraform files (plans, cache), keep your state files
+make tf-clean-cache ENV=dev
+
+# confirm there are no running EC2 instances and no leftover temp files
+make tf-clean-check ENV=dev
+
 ```
 
-### STEP 6: Test Adminer (Database Access)
+---
+
+
+## Other notes & checking process
+
+### aws CLI commands
 
 ```bash
-https://YOUR_SERVER_IP/adminer/
-```
-Login with:
-- System: MySQL
-- Server: mariadb
-- Username: wpuser (from .env MYSQL_USER)
-- Password: SecureDbPass456! (from .env MYSQL_PASSWORD)
-- Database: wordpress
+aws sts get-caller-identity
 
-### STEP 7: Test Auto-Restart (Data Persistence)
+# configure as default
+aws configure 
+
+# creates a separate named profile & stores another copy under a different profile name
+aws configure --profile cloud-1-dev
+
+curl -s https://checkip.amazonaws.com
+
+```
+
+```bash
+cp = Copy locally (File A → File B)
+ssh = Login remotely
+scp = ssh + cp (Copy File A → Remote Computer File B)
+```
+
+---
+
+### ec2 setup
+#### Option A: Full automated deployment (if Terraform + Ansible ready)
+
+```bash
+# SSH requires private keys to be readable only by the owner (should be 0600)
+# First time: Allow IP for SSH access
+make check-ssh-env ENV=dev  
+
+# (optional) if Infrastructure change (servers, networks, firewalls, etc.)
+make tf-deploy ENV=dev
+
+# Get the public IP from output (save it)
+# (optional) Second time: Get the new server IP(s) after infrastructure changes.
+# make check-ssh-env ENV=dev
+
+# Update Ansible inventory with that IP
+# (OPTIONAL) if IP changes -> nano ansible/inventories/dev/hosts.ini 
+ansible-playbook -i ansible/inventories/dev/hosts.ini ansible/playbook.yml
+```
+
+#### Option B: Manual deployment (if server already exists)
+
+```bash
+# SSH into your server
+ssh -i deploy_key ubuntu@[SERVER_IP]
+# check IP address viewed by external
+curl ifconfig.me
+# Restart containers if you made updates
+make compose-up ENV=dev
+# Check if containers are running
+sudo docker ps
+# Check if the site answers locally
+curl -k https://localhost | grep "wordpress"
+# Check if database is ready
+sudo docker exec mariadb mysql -u root -p[ROOT_PASSWORD] -e "SHOW DATABASES;"
+# Exit and test from browser
+https://[SERVER_IP] (Accept warning)
+http://[SERVER_IP]  (Should redirect to HTTPS)
+https://[SERVER_IP]/adminer/  (Should see Adminer login)
+# If there's a problem, check if the server listens on port 80 and 443
+ss -tulpn | grep -E '80|443'
+# Clone/update your repo if needed
+cd /home/ubuntu
+git clone https://github.com/your-repo/cloud-1.git || (cd cloud-1 && git pull)
+# Copy your .env file to the server
+exit  # back to local
+scp compose/.env ubuntu@YOUR_SERVER_IP:/home/ubuntu/cloud-1/compose/
+# SSH back in
+ssh ubuntu@YOUR_SERVER_IP
+# Build and start containers
+cd /home/ubuntu/cloud-1/compose
+sudo docker-compose up -d --build
+```
+---
+
+
+### Test Auto-Restart (Data Persistence)
 
 ```bash
 # SSH into server
@@ -352,7 +399,7 @@ sudo docker ps
 https://YOUR_SERVER_IP
 ```
 
-### STEP 8: Test Server Reboot
+### Test Server Reboot
 ```bash
 # SSH into server
 ssh ubuntu@YOUR_SERVER_IP
@@ -370,7 +417,7 @@ sudo systemctl status cloud-1
 sudo docker ps
 ```
 
-### STEP 9: Complete Checklist
+### Complete Checklist
 ```bash
 # 1. HTTP redirect works?
 curl -I http://YOUR_SERVER_IP | grep "301"
@@ -388,7 +435,7 @@ sudo docker ps | wc -l  # Should be 5 (4 containers + header)
 sudo docker exec mariadb mysql -u wpuser -pSecureDbPass456! -e "SHOW DATABASES;"    
 ```
 
-### STEP 10: Multi-Server Verification (Scaling)
+### Multi-Server Verification (Scaling)
 
 ```bash
 # 1. Verify 2 IPs in Terraform Output
@@ -406,7 +453,7 @@ curl -k -I https://51.44.220.17
 curl -k -I https://13.39.162.182
 ```
 
-### STEP 11: Verify .env Requirements
+### Verify .env Requirements
 
 ```bash
 # Verify .env exists and has content (ssh into one instance)
@@ -418,7 +465,7 @@ ssh -i deploy_key ubuntu@51.44.220.17 "sudo grep -E 'DOMAIN_NAME|MYSQL_USER|MYSQ
 
 ```
 
-### STEP 12: DNS Verification
+### DNS Verification
 
 ```bash
 # Option A: Check Real DNS (if configured)
@@ -431,27 +478,4 @@ curl -k -I -H "Host: yilin.42.fr" https://51.44.220.17
 # Verify it matches your Terraform output
 cd terraform/envs/dev && terraform output webserver_public_ips
 
-```
-
----
-
-## aws CLI commands
-
-```bash
-aws sts get-caller-identity
-
-# configure as default
-aws configure 
-
-# creates a separate named profile & stores another copy under a different profile name
-aws configure --profile cloud-1-dev
-
-curl -s https://checkip.amazonaws.com
-
-```
-
-```bash
-cp = Copy locally (File A → File B)
-ssh = Login remotely
-scp = ssh + cp (Copy File A → Remote Computer File B)
 ```
