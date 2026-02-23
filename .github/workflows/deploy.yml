@@ -1,3 +1,7 @@
+# GitHub Actions workflow
+# only used for automating deployment when you push to your GitHub repository (CI/CD in the cloud). 
+# Local deployment (using make, Python, Ansible, Terraform, etc.) does not depend on this file
+# GitHub to automatically deploy your infrastructure and application when you push changes to your repository
 name: Deploy to AWS
 
 on:

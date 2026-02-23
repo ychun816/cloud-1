@@ -40,6 +40,8 @@ Extending the old Inception project by:
 ---
 
 ### general setup
+* **deploy.yml in .github/workflows** Runs automatically on a remote server (e.g., GitHub Actions) when push code.
+* **python script** as Local Automation Script
 * **Bash script:** Procedural environment setup (install Docker, build images, verify credentials).
 * **Makefile:** Project task automation (run Terraform commands inside Docker).
 > This combination is portable, maintainable, and readable, which aligns with industry DevOps workflows.
@@ -262,6 +264,16 @@ This project follows a standard 3-step automation pipeline: **Provision → Conf
 
 
 ## Quick Start
+
+### launch EC2 + start Cloudwatch
+```bash
+python3 auto_deploy.py
+```
+### terminate EC2 + verify clearance
+```bash
+python3 terminate.py
+```
+
 
 # fetch a webpage from your server using HTTP (Port 80)
 # -v (verbose): Shows the complete "conversation" (handshake)
