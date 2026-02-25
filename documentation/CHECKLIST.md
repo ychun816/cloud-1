@@ -203,6 +203,11 @@ exit #quit
 2. check if all tools are installed (ansible/terraform/aws cli)
 ```bash
 make check-tools
+
+# check ec2 / env -> should be terminated
+make check-aws-ec2 ENV=dev
+
+
 ```
 
 ### STEP 1: Deploy to Your Server
@@ -212,7 +217,7 @@ make check-tools
 # 1 terraform deploy the initate EC2 instance
 make tf-deploy ENV=dev
 
-# 2 updates the security group with your current IP, saves outputs, and tests SSH access
+# 2 updates the security group with current IP, saves outputs, and tests SSH access
 make init-ssh-ec2 ENV=dev
 
 # 3 Check if EC2 instance is running and reachable (port 22)
