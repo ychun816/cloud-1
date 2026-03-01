@@ -35,6 +35,24 @@ def run_local(cmd, check=True, capture=False):
             sys.exit(process.returncode)
         return ""
 
+
+import socket
+
+def wait_for_ssh(ip, port=22, timeout=120):
+    print(f"[INFO] Waiting for SSH to become available at {ip}:{port} ...")
+    start = time.time()
+    while time.time() - start < timeout:
+        try:
+            with socket.create_connection((ip, port), timeout=5):
+                print("[INFO] SSH port is open!")
+                return True
+        except Exception:
+            print(".", end="", flush=True)
+            time.sleep(3)
+    print("\n[ERROR] Timeout waiting for SSH port to open.")
+    sys.exit(1)
+
+
 # Helper to SSH and run remote commands
 def run_ssh(ip, key_path, commands):
     print(f"\n[SSH] Connecting to {SSH_USER}@{ip} ...")
@@ -92,6 +110,7 @@ EC2_IP = get_ec2_ip()
 print(f"\n[INFO] EC2 Public IP: {EC2_IP}")
 
 # 7. SSH into EC2 and start/check CloudWatch agent
+wait_for_ssh(EC2_IP)
 run_ssh(EC2_IP, DEPLOY_KEY, CLOUDWATCH_COMMANDS)
 
 print("\n[INFO] All steps completed: launch ec2, connect via SSH, start CloudWatch agent, check status and logs")
