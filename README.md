@@ -275,11 +275,13 @@ python3 terminate.py
 ```
 
 
-# fetch a webpage from your server using HTTP (Port 80)
-# -v (verbose): Shows the complete "conversation" (handshake)
+### fetch a webpage from your server using HTTP (Port 80)
+```bash
+-v (verbose): Shows the complete "conversation" (handshake)
 curl -v  [address]
-
-# connect to server securely to run two specific checks, then immediately disconnect.
+```
+### connect to server securely to run two specific checks, then immediately disconnect.
+```bash
 ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no -o ConnectTimeout=5 ubuntu@51.44.255.51 "sudo docker ps && sudo ufw status"
 
 aws ec2 describe-instances --filters "Name=tag:Name,Values=cloud1-web-dev" "Name=instance-state-name,Values=running" --region eu-west-3 --query "Reservations[*].Instances[*].PublicIpAddress" --output text
