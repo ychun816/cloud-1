@@ -245,14 +245,13 @@ This project follows a standard 3-step automation pipeline: **Provision → Conf
                    │     - NGINX (Reverse Proxy + TLS)                │
                    │     - WordPress (PHP/APP)                        │
                    │     - MariaDB (DB)                               │
-                   │     - (optional) phpMyAdmin                      │
                    │                                                  │
                    │  Access: HTTPS via NGINX → Internet              │
                    └──────────────────────────────────────────────────┘
                                           │
                                           ▼
                     ┌────────────────────────────────┐
-                    │     Your WordPress Website     │
+                    │        WordPress Website       │
                     │  - NGINX + TLS                 │
                     │  - Persistent volumes          │
                     │  - Deployable via automation   │
