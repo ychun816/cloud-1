@@ -3,11 +3,13 @@
 ---
 
 ## Index Table 
-- Project brief
-- Project overview
-- Project workflow
-- Quick Start
-- Local test procedures (Ansible & Terraform)
+- [Project brief](#project-brief) 
+- [General Setup](#general-setup)
+- [Project Structure Overview](#Project-Structure-Overview)
+- [Project Workflow](#project-workflow)
+  - [Workflow Diagram](#workflow-diagram) 
+- [Quick Start](#Quick-Start)
+- [Local Test Procedures & Commands](#Local-test-procedures-and-commands)
 
 
 - documentations
@@ -261,7 +263,6 @@ This project follows a standard 3-step automation pipeline: **Provision → Conf
 
 ---
 
-
 ## Quick Start
 
 ### launch EC2 + start Cloudwatch
@@ -363,9 +364,9 @@ Optional local stack: `make compose-up`.
 
 ---
 
-## Local test procedures (Ansible & Terraform)
-
-Follow these steps to validate your automation locally before provisioning cloud resources.
+## Local test procedures and commands
+>  (Ansible & Terraform)
+> Follow these steps to validate the automation locally before provisioning cloud resources.
 
 Ansible — quick local checks and full VM test
 - Purpose: Validate playbook syntax, role tasks, Docker install, UFW, and systemd unit creation.
