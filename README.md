@@ -305,7 +305,7 @@ wp option update [option_name] [new_value]
 
 ---
 
-### Quick Start: AWS auth → Terraform plan
+### AWS auth → Terraform plan
 
 Use this concise checklist to go from tools-installed to a verified Terraform plan:
 
@@ -365,6 +365,7 @@ Optional local stack: `make compose-up`.
 ---
 
 ## Local test procedures and commands
+
 >  (Ansible & Terraform)
 > Follow these steps to validate the automation locally before provisioning cloud resources.
 
