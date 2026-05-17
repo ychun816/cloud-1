@@ -8,7 +8,6 @@
 - [Project Structure Overview](#Project-Structure-Overview)
 - [Project Workflow](#project-workflow)
   - [Workflow Diagram](#workflow-diagram)
-  - [AWS auth → Terraform plan](#AWS-auth-→-Terraform-plan) 
 - [Quick Start](#Quick-Start)
 - [Local Test Procedures & Commands](#Local-test-procedures-and-commands)
 
